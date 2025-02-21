@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"; //Importa o controle da camera
 import * as dat from "dat.gui";
 import { GLTFLoader } from "three/examples/jsm/Addons.js"; //Loader para carregar objetos glb do blender
+import { mod } from "three/tsl";
 
 const basket = new URL("../assets/bag.glb", import.meta.url); //Caminho do modelo
 
@@ -19,13 +20,15 @@ const camera = new THREE.PerspectiveCamera(
   1000 //far
 );
 
-const orbit = new OrbitControls(camera, renderer.domElement); //Cria o controle da camera
+// Descomente essas linhas para poder mexer a camera
+//const orbit = new OrbitControls(camera, renderer.domElement); //Cria o controle da camera
+//orbit.update(); //Atualizar sempre que muda a posição da camera
 
 const axesHelper = new THREE.AxesHelper(5); //Mostra os eixos
 scene.add(axesHelper);
 
-camera.position.set(-10, 30, 30); //Muda a posição do objeto
-orbit.update(); //Atualizar sempre que muda a posição da camera
+camera.position.set(0, 20, 20); //Muda a posição do objeto
+camera.lookAt(0,0,0) //Muda o lugar que a câmera olha
 
 const planeGeometry = new THREE.PlaneGeometry(30, 30);
 const planeMaterial = new THREE.MeshStandardMaterial({
@@ -61,10 +64,11 @@ const options = {
 gui.add(options, "speed", 0, 0.1); //Cria uma barra deslizante
 gui.add(options, "angle", 0, 1);
 gui.add(options, "penumbra", 0, 1);
-gui.add(options, "intensity", 0, 1);
+gui.add(options, "intensity", 0, 100);
 
 let step = 0;
 
+//Pega e normaliza a posição do mouse
 const mousePosition = new THREE.Vector2();
 window.addEventListener("mousemove", function (e) {
   mousePosition.x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -72,27 +76,42 @@ window.addEventListener("mousemove", function (e) {
 });
 
 const rayCaster = new THREE.Raycaster();
+const movPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // Plano horizontal (Y=0)
+const intersection = new THREE.Vector3();
 
+let basketModel;
 const assetLoader = new GLTFLoader();
 assetLoader.load(basket.href, function (gltf) {
   //Carregar o modelo do blender
-  const model = gltf.scene;
-  model.scale.set(6,6,6);
-  scene.add(model);
-  model.position.set(0, 0, 0);
-  model.receiveShadow = true;
+  basketModel = gltf.scene;
+  basketModel.scale.set(6,6,6);
+  basketModel.name="basketModel";
+  scene.add(basketModel);
+  basketModel.position.set(0, 0, 0);
+  basketModel.receiveShadow = true;
 });
 
+
 function animate(time) {
-  step += options.speed; //Dois comandos para a bola quicar
 
   spotLight.angle = options.angle;
   spotLight.penumbra = options.penumbra;
   spotLight.intensity = options.intensity * 600;
 
-  rayCaster.setFromCamera(mousePosition, camera); //Faz o ray ser da camera para o mouse
-  const intersects = rayCaster.intersectObjects(scene.children); //Pega todos os objetos que interseptam pelo ray
+  rayCaster.setFromCamera(mousePosition, camera);
+
+  // Calcula onde o raio intercepta o plano
+  rayCaster.ray.intersectPlane(movPlane, intersection);
+
+  const intersects = rayCaster.intersectObjects(scene.children); //Pega todos os objetos que são interceptados pelo ray
   console.log(intersects);
+
+ 
+  //Move a cesta conforme o mouse
+  if(basketModel){
+    basketModel.position.set(mousePosition.x*15, 0, 0);
+  }
+
 
   renderer.render(scene, camera);
 }
