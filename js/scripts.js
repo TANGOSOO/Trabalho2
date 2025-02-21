@@ -71,7 +71,7 @@ function createBall(xPosition){
     shape: new CANNON.Sphere(1),
     mass: 1,
   });
-  ballBody.position.set(xPosition, 10, 0);
+  ballBody.position.set(xPosition, 20, 0);
   balls[balls.length]=[ballMesh, ballBody];
   world.addBody(ballBody);
 }
@@ -110,7 +110,7 @@ window.addEventListener("mousemove", function (e) {
 });
 
 window.addEventListener('click', (event) => {
-  createBall(10);
+  createBall((Math.random() * 20)-10);
 });
 
 
