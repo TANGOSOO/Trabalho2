@@ -59,10 +59,12 @@ scene.add(gridHelper);
 //vetor de bolas
 var balls=[];
 
+
 function createBall(xPosition){
-  const ballGeometry = new THREE.SphereGeometry(1, 32, 32);
+  const ballGeometry = new THREE.SphereGeometry(0.5, 32, 32);
   const ballMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
   const ballMesh = new THREE.Mesh(ballGeometry, ballMaterial);
+  ballMesh.receiveShadow=true;
   scene.add(ballMesh);
   // Criação dos corpos físicos
   const ballBody = new CANNON.Body({
