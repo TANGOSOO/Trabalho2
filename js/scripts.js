@@ -22,8 +22,8 @@ const camera = new THREE.PerspectiveCamera(
 );
 
 // Descomente essas linhas para poder mexer a camera
-//const orbit = new OrbitControls(camera, renderer.domElement); //Cria o controle da camera
-//orbit.update(); //Atualizar sempre que muda a posição da camera
+const orbit = new OrbitControls(camera, renderer.domElement); //Cria o controle da camera
+orbit.update(); //Atualizar sempre que muda a posição da camera
 
 const axesHelper = new THREE.AxesHelper(5); //Mostra os eixos
 scene.add(axesHelper);
@@ -53,24 +53,29 @@ assetLoader.load(basket.href, function (gltf) {
   basketModel.receiveShadow = true;
 });
 
-//Exemplo de bola
-const ballGeometry = new THREE.SphereGeometry(1, 32, 32);
-const ballMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-const ballMesh = new THREE.Mesh(ballGeometry, ballMaterial);
-scene.add(ballMesh);
-// Criação dos corpos físicos
-const ballBody = new CANNON.Body({
-  shape: new CANNON.Sphere(1),
-  mass: 1,
-});
-ballBody.position.set(0, 10, 0);
-
 const gridHelper = new THREE.GridHelper(30, 5); //Args: Tamanho do grid, quantidade de sctions
 scene.add(gridHelper);
 
+//vetor de bolas
+var balls=[];
+
+function createBall(xPosition){
+  const ballGeometry = new THREE.SphereGeometry(1, 32, 32);
+  const ballMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+  const ballMesh = new THREE.Mesh(ballGeometry, ballMaterial);
+  scene.add(ballMesh);
+  // Criação dos corpos físicos
+  const ballBody = new CANNON.Body({
+    shape: new CANNON.Sphere(1),
+    mass: 1,
+  });
+  ballBody.position.set(xPosition, 10, 0);
+  balls[balls.length]=[ballMesh, ballBody];
+  world.addBody(ballBody);
+}
+
 const world = new CANNON.World();
 world.gravity.set(0, -10, 0); // Configuração da gravidade
-world.addBody(ballBody);
 
 
 const spotLight = new THREE.SpotLight(0xffffff);
@@ -102,10 +107,14 @@ window.addEventListener("mousemove", function (e) {
   mousePosition.y = -(e.clientY / window.innerHeight) * 2 + 1;
 });
 
+window.addEventListener('click', (event) => {
+  createBall(10);
+});
+
+
 const rayCaster = new THREE.Raycaster();
 const movPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // Plano horizontal (Y=0)
 const intersection = new THREE.Vector3();
-
 
 function animate(time) {
 
@@ -113,8 +122,9 @@ function animate(time) {
   spotLight.penumbra = options.penumbra;
   spotLight.intensity = options.intensity * 600;
 
+  /*
   ballMesh.position.copy(ballBody.position);
-  ballMesh.quaternion.copy(ballBody.quaternion);
+  ballMesh.quaternion.copy(ballBody.quaternion); */
 
   rayCaster.setFromCamera(mousePosition, camera);
 
@@ -127,6 +137,13 @@ function animate(time) {
   if(basketModel){
     basketModel.position.set(mousePosition.x*15, 0, 0);
   }
+
+  for(let i=0; i<balls.length-1; i++){
+    balls[i][0].position.copy(balls[i][1].position);
+    balls[i][0].quaternion.copy(balls[i][1].quaternion);
+  }
+
+  console.log(balls.length);
 
   world.step(1 / 60);
 
