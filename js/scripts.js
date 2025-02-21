@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"; //Importa o controle da camera
 import * as dat from "dat.gui";
+import * as CANNON from 'cannon-es';
 import { GLTFLoader } from "three/examples/jsm/Addons.js"; //Loader para carregar objetos glb do blender
 import { mod } from "three/tsl";
 
@@ -40,8 +41,36 @@ scene.add(plane);
 plane.rotation.x = -0.5 * Math.PI;
 plane.receiveShadow = true; //Faz com que o plano receba sombra
 
+let basketModel;
+const assetLoader = new GLTFLoader();
+assetLoader.load(basket.href, function (gltf) {
+  //Carregar o modelo do blender
+  basketModel = gltf.scene;
+  basketModel.scale.set(6,6,6);
+  basketModel.name="basketModel";
+  scene.add(basketModel);
+  basketModel.position.set(0, 0, 0);
+  basketModel.receiveShadow = true;
+});
+
+//Exemplo de bola
+const ballGeometry = new THREE.SphereGeometry(1, 32, 32);
+const ballMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+const ballMesh = new THREE.Mesh(ballGeometry, ballMaterial);
+scene.add(ballMesh);
+// Criação dos corpos físicos
+const ballBody = new CANNON.Body({
+  shape: new CANNON.Sphere(1),
+  mass: 1,
+});
+ballBody.position.set(0, 10, 0);
+
 const gridHelper = new THREE.GridHelper(30, 5); //Args: Tamanho do grid, quantidade de sctions
 scene.add(gridHelper);
+
+const world = new CANNON.World();
+world.gravity.set(0, -10, 0); // Configuração da gravidade
+world.addBody(ballBody);
 
 
 const spotLight = new THREE.SpotLight(0xffffff);
@@ -77,18 +106,6 @@ const rayCaster = new THREE.Raycaster();
 const movPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // Plano horizontal (Y=0)
 const intersection = new THREE.Vector3();
 
-let basketModel;
-const assetLoader = new GLTFLoader();
-assetLoader.load(basket.href, function (gltf) {
-  //Carregar o modelo do blender
-  basketModel = gltf.scene;
-  basketModel.scale.set(6,6,6);
-  basketModel.name="basketModel";
-  scene.add(basketModel);
-  basketModel.position.set(0, 0, 0);
-  basketModel.receiveShadow = true;
-});
-
 
 function animate(time) {
 
@@ -96,20 +113,22 @@ function animate(time) {
   spotLight.penumbra = options.penumbra;
   spotLight.intensity = options.intensity * 600;
 
+  ballMesh.position.copy(ballBody.position);
+  ballMesh.quaternion.copy(ballBody.quaternion);
+
   rayCaster.setFromCamera(mousePosition, camera);
 
   // Calcula onde o raio intercepta o plano
   rayCaster.ray.intersectPlane(movPlane, intersection);
 
   const intersects = rayCaster.intersectObjects(scene.children); //Pega todos os objetos que são interceptados pelo ray
-  console.log(intersects);
-
  
   //Move a cesta conforme o mouse
   if(basketModel){
     basketModel.position.set(mousePosition.x*15, 0, 0);
   }
 
+  world.step(1 / 60);
 
   renderer.render(scene, camera);
 }
