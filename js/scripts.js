@@ -46,22 +46,20 @@ scene.add(gridHelper);
 
 const spotLight = new THREE.SpotLight(0xffffff);
 spotLight.intensity = 100; //Muda a intensidade da luz
-spotLight.angle = 0.2; //Muda o angulo
+spotLight.angle = 10; //Muda o angulo
 scene.add(spotLight);
-spotLight.position.set(-30, 30, 0);
+spotLight.position.set(0, 30, 0);
 spotLight.castShadow = true;
 
 renderer.setClearColor(0xffffff); //Muda o background
 
 const gui = new dat.GUI(); //Cria uma GUI para interação com o usuário
 const options = {
-  speed: 0.01,
-  angle: 0.2,
+  angle: 10,
   penumbra: 0,
-  intensity: 1,
+  intensity: 50,
 };
 
-gui.add(options, "speed", 0, 0.1); //Cria uma barra deslizante
 gui.add(options, "angle", 0, 1);
 gui.add(options, "penumbra", 0, 1);
 gui.add(options, "intensity", 0, 100);
