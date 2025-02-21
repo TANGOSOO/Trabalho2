@@ -3,6 +3,8 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"; //
 import * as dat from "dat.gui";
 import { GLTFLoader } from "three/examples/jsm/Addons.js"; //Loader para carregar objetos glb do blender
 
+const basket = new URL("../assets/bag.glb", import.meta.url); //Caminho do modelo
+
 const renderer = new THREE.WebGLRenderer(); //Cria o render
 renderer.shadowMap.enabled = true; //Ativa as sombras
 
@@ -25,11 +27,6 @@ scene.add(axesHelper);
 camera.position.set(-10, 30, 30); //Muda a posição do objeto
 orbit.update(); //Atualizar sempre que muda a posição da camera
 
-const boxGeometry = new THREE.BoxGeometry();
-const boxMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-const box = new THREE.Mesh(boxGeometry, boxMaterial);
-scene.add(box);
-
 const planeGeometry = new THREE.PlaneGeometry(30, 30);
 const planeMaterial = new THREE.MeshStandardMaterial({
   color: 0xffffff,
@@ -43,15 +40,6 @@ plane.receiveShadow = true; //Faz com que o plano receba sombra
 const gridHelper = new THREE.GridHelper(30, 5); //Args: Tamanho do grid, quantidade de sctions
 scene.add(gridHelper);
 
-const sphereGeometry = new THREE.SphereGeometry(4, 50, 50); //Args: Raio, numero de segumentos verticais, horizontais
-const sphereMaterial = new THREE.MeshStandardMaterial({
-  color: 0x0000ff,
-  wireframe: false,
-});
-const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-sphere.position.set(-10, 10, 0);
-scene.add(sphere);
-sphere.castShadow = true;
 
 const spotLight = new THREE.SpotLight(0xffffff);
 spotLight.intensity = 100; //Muda a intensidade da luz
@@ -60,27 +48,16 @@ scene.add(spotLight);
 spotLight.position.set(-30, 30, 0);
 spotLight.castShadow = true;
 
-renderer.setClearColor(0xffaaff); //Muda o background
-
+renderer.setClearColor(0xffffff); //Muda o background
 
 const gui = new dat.GUI(); //Cria uma GUI para interação com o usuário
 const options = {
-  sphereColor: "#ffea00",
-  wireframe: false,
   speed: 0.01,
   angle: 0.2,
   penumbra: 0,
   intensity: 1,
 };
 
-gui.addColor(options, "sphereColor").onChange(function (e) {
-  //Para botar uma opção de cor
-  sphere.material.color.set(e);
-});
-gui.add(options, "wireframe").onChange(function (e) {
-  //Para botar uma checkbox
-  sphere.material.wireframe = e;
-});
 gui.add(options, "speed", 0, 0.1); //Cria uma barra deslizante
 gui.add(options, "angle", 0, 1);
 gui.add(options, "penumbra", 0, 1);
@@ -96,14 +73,18 @@ window.addEventListener("mousemove", function (e) {
 
 const rayCaster = new THREE.Raycaster();
 
-const sphereId = sphere.id;
+const assetLoader = new GLTFLoader();
+assetLoader.load(basket.href, function (gltf) {
+  //Carregar o modelo do blender
+  const model = gltf.scene;
+  model.scale.set(6,6,6);
+  scene.add(model);
+  model.position.set(0, 0, 0);
+  model.receiveShadow = true;
+});
 
 function animate(time) {
-  box.rotation.x += 0.01;
-  box.rotation.y += 0.01;
-
   step += options.speed; //Dois comandos para a bola quicar
-  sphere.position.y = 10 * Math.abs(Math.sin(step));
 
   spotLight.angle = options.angle;
   spotLight.penumbra = options.penumbra;
@@ -112,16 +93,6 @@ function animate(time) {
   rayCaster.setFromCamera(mousePosition, camera); //Faz o ray ser da camera para o mouse
   const intersects = rayCaster.intersectObjects(scene.children); //Pega todos os objetos que interseptam pelo ray
   console.log(intersects);
-
-  for (let i = 0; i < intersects.length; i++) {
-    if (intersects[i].object.id === sphereId) {
-      intersects[i].object.material.color.set(0xffffff);
-    }
-    if (intersects[i].object.name === "theBox") {
-      intersects[i].object.rotation.x = time / 1000;
-      intersects[i].object.rotation.y = time / 1000;
-    }
-  }
 
   renderer.render(scene, camera);
 }
