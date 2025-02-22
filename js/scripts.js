@@ -72,7 +72,37 @@ const basketBody = new CANNON.Body({
   mass: 1,
   shape: new CANNON.Box(new CANNON.Vec3(1, 1, 1)),
 });
-world.addBody(basketBody);
+//world.addBody(basketBody);
+
+
+const wallGeometry = new THREE.BoxGeometry(0.05, 1.5, 2); 
+const wall2Geometry = new THREE.BoxGeometry(1.5, 0.05, 2); 
+const wall3Geometry = new THREE.BoxGeometry(2, 1.5, 0.05); 
+const wall4Geometry = new THREE.BoxGeometry(0.05, 1.5, 2); 
+const wall5Geometry = new THREE.BoxGeometry(2, 1.5, 0.05); 
+
+
+const wallMaterial = new THREE.MeshBasicMaterial({ 
+  color: 0xff0000, // Vermelho
+  wireframe: true // Apenas as bordas visíveis
+});
+
+// Criar a parede
+const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+const wall2 = new THREE.Mesh(wall2Geometry, wallMaterial);
+const wall3 = new THREE.Mesh(wall3Geometry, wallMaterial);
+const wall4 = new THREE.Mesh(wall4Geometry, wallMaterial);
+const wall5 = new THREE.Mesh(wall5Geometry, wallMaterial);
+
+
+// Adicionar à cena
+scene.add(wall);
+scene.add(wall2);
+scene.add(wall3);
+scene.add(wall4);
+scene.add(wall5);
+
+
 
 const gridHelper = new THREE.GridHelper(30, 5); //Args: Tamanho do grid, quantidade de sctions
 scene.add(gridHelper);
@@ -179,7 +209,18 @@ function animate(time) {
  
   //Move a cesta conforme o mouse
   if(basketModel){
+    const offset1 = new THREE.Vector3(0.8, 0.8, 0);
+    const offset2 = new THREE.Vector3(0, 0, 0);
+    const offset3 = new THREE.Vector3(0, 0.8, 0.8);
+    const offset4 = new THREE.Vector3(-0.8, 0.8, 0);
+    const offset5 = new THREE.Vector3(0, 0.8, -0.8);
+
     basketBody.position.set(mousePosition.x*15,0,0);
+    wall.position.copy(basketBody.position).add(offset1);
+    wall2.position.copy(basketBody.position).add(offset2);
+    wall3.position.copy(basketBody.position).add(offset3);
+    wall4.position.copy(basketBody.position).add(offset4);
+    wall5.position.copy(basketBody.position).add(offset5);
     basketModel.position.set(basketBody.position.x, 0, 0);
   }
 
