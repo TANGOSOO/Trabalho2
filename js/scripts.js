@@ -60,9 +60,9 @@ scene.add(gridHelper);
 var balls=[];
 
 
-function createBall(xPosition){
+function createBall(xPosition, color){
   const ballGeometry = new THREE.SphereGeometry(0.5, 32, 32);
-  const ballMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+  const ballMaterial = new THREE.MeshBasicMaterial({ color: getColor(color) });
   const ballMesh = new THREE.Mesh(ballGeometry, ballMaterial);
   ballMesh.receiveShadow=true;
   scene.add(ballMesh);
@@ -74,6 +74,17 @@ function createBall(xPosition){
   ballBody.position.set(xPosition, 20, 0);
   balls[balls.length]=[ballMesh, ballBody];
   world.addBody(ballBody);
+}
+
+function getColor(color){
+  switch(color){
+    case 1:
+      return 0xff0000;
+    case 2:
+      return 0x00ff00; 
+    case 3:
+      return 0x0000ff;
+  }
 }
 
 const world = new CANNON.World();
@@ -110,7 +121,7 @@ window.addEventListener("mousemove", function (e) {
 });
 
 window.addEventListener('click', (event) => {
-  createBall((Math.random() * 20)-10);
+  createBall((Math.random() * 20)-10, Math.floor(Math.random()*3)+1);
 });
 
 
