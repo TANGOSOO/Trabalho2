@@ -86,7 +86,7 @@ function createBall(xPosition, model){
 
   // Criação dos corpos físicos
   const ballBody = new CANNON.Body({
-    shape: new CANNON.Sphere(1),
+    shape: new CANNON.Sphere(getRadius(model)),
     mass: 1,
   });
   ballBody.position.set(xPosition, 20, 0);
