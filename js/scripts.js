@@ -7,7 +7,7 @@ import appleTexture from "../textures/apple.jpg";
 import watermelonTexture from "../textures/watermelon.jpg";
 import grapeTexture from "../textures/grape.jpg";
 
-const basket = new URL("../assets/bag.glb", import.meta.url); //Caminho do modelo
+const basket = new URL("../assets/basket.glb", import.meta.url); //Caminho do modelo
 
 //Carregador de texturas e assets
 const textureLoader=new THREE.TextureLoader();
