@@ -63,7 +63,7 @@ let basketModel;
 assetLoader.load(basket.href, function (gltf) {
   //Carregar o modelo do blender
   basketModel = gltf.scene;
-  basketModel.scale.set(8,8,8);
+  basketModel.scale.set(6,6,6);
   scene.add(basketModel);
   basketModel.position.set(0, 0, 0);
   basketModel.receiveShadow = true;
