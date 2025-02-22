@@ -68,6 +68,11 @@ assetLoader.load(basket.href, function (gltf) {
   basketModel.position.set(0, 0, 0);
   basketModel.receiveShadow = true;
 });
+const basketBody = new CANNON.Body({
+  mass: 1,
+  shape: new CANNON.Box(new CANNON.Vec3(1, 1, 1)),
+});
+world.addBody(basketBody);
 
 const gridHelper = new THREE.GridHelper(30, 5); //Args: Tamanho do grid, quantidade de sctions
 scene.add(gridHelper);
@@ -174,7 +179,8 @@ function animate(time) {
  
   //Move a cesta conforme o mouse
   if(basketModel){
-    basketModel.position.set(mousePosition.x*15, 0, 0);
+    basketBody.position.set(mousePosition.x*15,0,0);
+    basketModel.position.set(basketBody.position.x, 0, 0);
   }
 
   for(let i=0; i<balls.length-1; i++){
