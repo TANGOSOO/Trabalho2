@@ -26,6 +26,8 @@ const camera = new THREE.PerspectiveCamera(
   0.1, //near
   1000 //far
 );
+camera.position.set(0, 20, 20); //Muda a posição do objeto
+camera.lookAt(0,0,0) //Muda o lugar que a câmera olha
 
 // Descomente essas linhas para poder mexer a camera
 const orbit = new OrbitControls(camera, renderer.domElement); //Cria o controle da camera
@@ -34,9 +36,10 @@ orbit.update(); //Atualizar sempre que muda a posição da camera
 const axesHelper = new THREE.AxesHelper(5); //Mostra os eixos
 scene.add(axesHelper);
 
-camera.position.set(0, 20, 20); //Muda a posição do objeto
-camera.lookAt(0,0,0) //Muda o lugar que a câmera olha
+const world = new CANNON.World();
+world.gravity.set(0, -10, 0); // Configuração da gravidade
 
+//Construção do plano
 const planeGeometry = new THREE.PlaneGeometry(30, 30);
 const planeMaterial = new THREE.MeshStandardMaterial({
   color: 0xffffff,
@@ -46,6 +49,15 @@ const plane = new THREE.Mesh(planeGeometry, planeMaterial);
 scene.add(plane);
 plane.rotation.x = -0.5 * Math.PI;
 plane.receiveShadow = true; //Faz com que o plano receba sombra
+const planeBody = new CANNON.Body({
+  type: CANNON.Body.STATIC,
+  shape: new CANNON.Box(new CANNON.Vec3(15, 15, 0.1))
+})
+planeBody.position.set(0,0,0)
+planeBody.quaternion.setFromEuler(-Math.PI/2,0,0)
+world.addBody(planeBody);
+plane.position.copy(planeBody.position);
+plane.quaternion.copy(planeBody.quaternion);
 
 let basketModel;
 assetLoader.load(basket.href, function (gltf) {
@@ -103,9 +115,6 @@ function getTexture(texture){
       return grapeTexture;
   }
 }
-
-const world = new CANNON.World();
-world.gravity.set(0, -10, 0); // Configuração da gravidade
 
 
 const spotLight = new THREE.SpotLight(0xffffff);
