@@ -3,9 +3,15 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"; //
 import * as dat from "dat.gui";
 import * as CANNON from 'cannon-es';
 import { GLTFLoader } from "three/examples/jsm/Addons.js"; //Loader para carregar objetos glb do blender
-import { mod } from "three/tsl";
+import appleTexture from "../textures/apple.jpg";
+import watermelonTexture from "../textures/watermelon.jpg";
+import grapeTexture from "../textures/grape.jpg";
 
 const basket = new URL("../assets/bag.glb", import.meta.url); //Caminho do modelo
+
+//Carregador de texturas e assets
+const textureLoader=new THREE.TextureLoader();
+const assetLoader = new GLTFLoader();
 
 const renderer = new THREE.WebGLRenderer(); //Cria o render
 renderer.shadowMap.enabled = true; //Ativa as sombras
@@ -42,12 +48,10 @@ plane.rotation.x = -0.5 * Math.PI;
 plane.receiveShadow = true; //Faz com que o plano receba sombra
 
 let basketModel;
-const assetLoader = new GLTFLoader();
 assetLoader.load(basket.href, function (gltf) {
   //Carregar o modelo do blender
   basketModel = gltf.scene;
-  basketModel.scale.set(6,6,6);
-  basketModel.name="basketModel";
+  basketModel.scale.set(8,8,8);
   scene.add(basketModel);
   basketModel.position.set(0, 0, 0);
   basketModel.receiveShadow = true;
@@ -59,13 +63,15 @@ scene.add(gridHelper);
 //vetor de bolas
 var balls=[];
 
-
-function createBall(xPosition, color){
-  const ballGeometry = new THREE.SphereGeometry(0.5, 32, 32);
-  const ballMaterial = new THREE.MeshBasicMaterial({ color: getColor(color) });
+function createBall(xPosition, model){
+  const ballGeometry = new THREE.SphereGeometry(getRadius(model), 32, 32);
+  const ballMaterial = new THREE.MeshBasicMaterial({
+    map: textureLoader.load(getTexture(model))
+  });
   const ballMesh = new THREE.Mesh(ballGeometry, ballMaterial);
   ballMesh.receiveShadow=true;
   scene.add(ballMesh);
+
   // Criação dos corpos físicos
   const ballBody = new CANNON.Body({
     shape: new CANNON.Sphere(1),
@@ -76,14 +82,25 @@ function createBall(xPosition, color){
   world.addBody(ballBody);
 }
 
-function getColor(color){
-  switch(color){
+function getRadius(radius){
+  switch(radius){
     case 1:
-      return 0xff0000;
+      return 0.4;
     case 2:
-      return 0x00ff00; 
+      return 0.7;
     case 3:
-      return 0x0000ff;
+      return 0.2;
+  }
+}
+
+function getTexture(texture){
+  switch(texture){
+    case 1:
+      return appleTexture;
+    case 2:
+      return watermelonTexture;
+    case 3:
+      return grapeTexture;
   }
 }
 
