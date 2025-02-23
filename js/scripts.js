@@ -6,7 +6,6 @@ import { GLTFLoader } from "three/examples/jsm/Addons.js"; //Loader para carrega
 import appleTexture from "../textures/apple.jpg";
 import watermelonTexture from "../textures/watermelon.jpg";
 import grapeTexture from "../textures/grape.jpg";
-import { Brush, Evaluator, SUBTRACTION } from "three-bvh-csg";
 
 const basket = new URL("../assets/basket.glb", import.meta.url); //Caminho do modelo
 
@@ -38,7 +37,7 @@ const axesHelper = new THREE.AxesHelper(5); //Mostra os eixos
 scene.add(axesHelper);
 
 const world = new CANNON.World();
-world.gravity.set(0, -10, 0); // Configuração da gravidade
+world.gravity.set(0, -2, 0); // Configuração da gravidade
 
 //Construção do plano
 const planeGeometry = new THREE.PlaneGeometry(30, 30);
@@ -144,6 +143,7 @@ scene.add(gridHelper);
 
 //vetor de bolas
 var balls = [];
+var ballsToRemove = [];
 
 function createBall(xPosition, model) {
   const ballGeometry = new THREE.SphereGeometry(getRadius(model), 32, 32);
@@ -161,16 +161,19 @@ function createBall(xPosition, model) {
     mass: 1,
   });
   ballBody.position.set(xPosition, 20, 0);
-  balls[balls.length] = [ballMesh, ballBody];
+  let ball=[ballMesh, ballBody];
+  balls[balls.length] = ball;
   world.addBody(ballBody);
 
   ballBody.addEventListener("collide", (event) => {
     if(event.body===planeBody){
       scene.remove(ballMesh);
+      ballsToRemove.push(ballBody);
       console.log("Floor");
     }
     if(event.body===basketBottomBody){
       scene.remove(ballMesh);
+      ballsToRemove.push(ballBody);
       console.log("Bottom")
     }
   });
@@ -229,6 +232,12 @@ window.addEventListener("click", (event) => {
   createBall(Math.random() * 20 - 10, Math.floor(Math.random() * 3) + 1);
 });
 
+world.addEventListener('postStep', function () {
+  ballsToRemove.forEach((body) => {
+    world.removeBody(body);
+  })
+});
+
 const rayCaster = new THREE.Raycaster();
 const movPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // Plano horizontal (Y=0)
 const intersection = new THREE.Vector3();
@@ -262,8 +271,10 @@ function animate(time) {
   }
 
   for (let i = 0; i < balls.length - 1; i++) {
-    balls[i][0].position.copy(balls[i][1].position);
-    balls[i][0].quaternion.copy(balls[i][1].quaternion);
+    if(world.bodies.includes(balls[i][1])){
+      balls[i][0].position.copy(balls[i][1].position);
+      balls[i][0].quaternion.copy(balls[i][1].quaternion);
+    }
   }
 
   world.step(1 / 60);
