@@ -211,7 +211,6 @@ function createBall(xPosition, model) {
     if(event.body===basketBottomBody && ballBody.flagRemove===false){
       ballsToRemove.push(ball);
       ballBody.flagRemove=true;
-      createBall(Math.random() * 20 - 10, Math.floor(Math.random() * 3) + 1);
       console.log("Bottom")
     }
   });
@@ -253,12 +252,13 @@ const options = {
   angle: 10,
   penumbra: 0,
   intensity: 50,
+  "Balls per Second": 1,
 };
 
 gui.add(options, "angle", 0, 1);
 gui.add(options, "penumbra", 0, 1);
 gui.add(options, "intensity", 0, 100);
-
+gui.add(options, "Balls per Second", 1, 10, 1);
 const simulFolder = gui.addFolder('Simulação');
 simulFolder.add(world.gravity, 'y', -20,-0.1).step(0.1).name('Gravidade');
 simulFolder.open();
@@ -290,10 +290,15 @@ const rayCaster = new THREE.Raycaster();
 const movPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // Plano horizontal (Y=0)
 const intersection = new THREE.Vector3();
 
+let delay=0;
+let cont=0;
+
 function animate(time) {
   spotLight.angle = options.angle;
   spotLight.penumbra = options.penumbra;
   spotLight.intensity = options.intensity * 600;
+
+  delay=60/options["Balls per Second"];
 
   rayCaster.setFromCamera(mousePosition, camera);
 
@@ -316,6 +321,13 @@ function animate(time) {
     rightWallBody.position.copy(rightWall.position);
     topWallBody.position.copy(topWall.position);
     bottomWallBody.position.copy(bottomWall.position);
+  }
+
+  if(cont==delay){
+    createBall(Math.random() * 20 - 10, Math.floor(Math.random() * 3) + 1);
+    cont=0;
+  }else{
+    cont++;
   }
 
   for (let i = 0; i < balls.length; i++) {
