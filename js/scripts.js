@@ -176,6 +176,9 @@ world.addBody(zNegativeConstraintWallBody);
 const gridHelper = new THREE.GridHelper(30, 5);
 scene.add(gridHelper);
 
+//Pontuação
+let score = 0;
+
 //vetor de BOLAS
 var balls = [];
 var ballsToRemove = [];
@@ -204,11 +207,17 @@ function createBall(xPosition, model) {
 
   ballBody.addEventListener("collide", (event) => {
     if(event.body===planeBody && ballBody.flagRemove===false){
+      if(model == 1) score -= 10;
+      if(model == 2) score -= 5;
+      if(model == 3) score -= 1;
       ballsToRemove.push(ball);
       ballBody.flagRemove=true;
       console.log("Floor");
     }
     if(event.body===basketBottomBody && ballBody.flagRemove===false){
+      if(model == 1) score += 10;
+      if(model == 2) score += 5;
+      if(model == 3) score += 1;
       ballsToRemove.push(ball);
       ballBody.flagRemove=true;
       console.log("Bottom")
@@ -323,7 +332,7 @@ const timeSprites = [
 const startX = -50; // Adjusted start position
 const spacing = 25; // Adjusted spacing
 timeSprites.forEach((sprite, i) => {
-    sprite.position.set(startX + i * spacing, window.innerHeight / 2 - 20, 0); // Adjusted Y position
+    sprite.position.set(startX + i * spacing, window.innerHeight / 2 - 50, 0); // Adjusted Y position
     sprite.scale.set(25, 25, 1); // Ensure sprites are scaled to be visible
     uiScene.add(sprite);
 });
@@ -347,6 +356,48 @@ function updateTimer() {
     timeSprites.forEach(sprite => {
         sprite.material.map.needsUpdate = true;
     });
+}
+
+const ptsTexture = textureLoader.load('../sprites/pts.png');
+
+const scoreSprites = [
+  createSprite(numberTextures[0]),
+  createSprite(numberTextures[0]),
+  createSprite(numberTextures[0]),
+  createSprite(numberTextures[0]),
+  createSprite(ptsTexture)
+];
+
+const scoreStartX = -50; // Adjusted start position
+const scoreSpacing = 25; // Adjusted spacing
+scoreSprites.forEach((sprite, i) => {
+    sprite.position.set(startX + i * spacing, - window.innerHeight / 2 + 200, 0); // Adjusted Y position
+    sprite.scale.set(25, 25, 1); // Ensure sprites are scaled to be visible
+    uiScene.add(sprite);
+});
+scoreSprites[4].position.set(startX + 4 * spacing + 30, - window.innerHeight / 2 + 200, 0);
+scoreSprites[4].scale.set(50,25,1);
+
+
+function updateScoreboard()
+{
+  if(score<0) score = 0;
+  let m4 = Math.floor(score / 1000);
+  let m3 = Math.floor(score / 100);
+  let m2 = Math.floor(score / 10);
+  let m1 = score % 10;
+
+  // Atualizar as texturas dos sprites
+  scoreSprites[0].material.map = numberTextures[m4];
+  scoreSprites[1].material.map = numberTextures[m3];
+  scoreSprites[2].material.map = numberTextures[m2];
+  scoreSprites[3].material.map = numberTextures[m1];
+
+  // Ensure the textures are updated
+  scoreSprites.forEach(sprite => {
+      sprite.material.map.needsUpdate = true;
+  });
+
 }
 
 function animate(time) {
@@ -401,6 +452,9 @@ function animate(time) {
   //ATUALIZAÇÃO DO DEBUGGER
   cannonDebugger.update();
 
+  //ATUALIZAÇÃO DO SCOREBOARD
+  updateScoreboard();
+
   updateTimer();
   renderer.autoClear = false;
   renderer.clearDepth();
@@ -421,6 +475,10 @@ window.addEventListener('resize', () => {
 
   // Update sprite positions on resize
   timeSprites.forEach((sprite, i) => {
-      sprite.position.set(startX + i * spacing, window.innerHeight / 2 - 100, 0);
+      sprite.position.set(startX + i * spacing, window.innerHeight / 2 - 50, 0);
   });
+
+  scoreSprites.forEach((sprite, i) => {
+    sprite.position.set(startX + i * spacing, - window.innerHeight / 2 + 200, 0);
+});
 });
