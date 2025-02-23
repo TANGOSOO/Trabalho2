@@ -164,16 +164,17 @@ function createBall(xPosition, model) {
   let ball=[ballMesh, ballBody];
   balls[balls.length] = ball;
   world.addBody(ballBody);
+  ballBody.flagRemove=false;;
 
   ballBody.addEventListener("collide", (event) => {
-    if(event.body===planeBody){
-      scene.remove(ballMesh);
-      ballsToRemove.push(ballBody);
+    if(event.body===planeBody && ballBody.flagRemove===false){
+      ballsToRemove.push(ball);
+      ballBody.flagRemove=true;
       console.log("Floor");
     }
-    if(event.body===basketBottomBody){
-      scene.remove(ballMesh);
-      ballsToRemove.push(ballBody);
+    if(event.body===basketBottomBody && ballBody.flagRemove===false){
+      ballsToRemove.push(ball);
+      ballBody.flagRemove=true;
       console.log("Bottom")
     }
   });
@@ -233,9 +234,10 @@ window.addEventListener("click", (event) => {
 });
 
 world.addEventListener('postStep', function () {
-  ballsToRemove.forEach((body) => {
-    world.removeBody(body);
-  })
+  for(let i=0; i<ballsToRemove.length; i++){
+    scene.remove(ballsToRemove[i][0]);
+    world.removeBody(ballsToRemove[i][1]);
+  }
 });
 
 const rayCaster = new THREE.Raycaster();
@@ -270,7 +272,7 @@ function animate(time) {
     bottomWallBody.position.copy(bottomWall.position);
   }
 
-  for (let i = 0; i < balls.length - 1; i++) {
+  for (let i = 0; i < balls.length; i++) {
     if(world.bodies.includes(balls[i][1])){
       balls[i][0].position.copy(balls[i][1].position);
       balls[i][0].quaternion.copy(balls[i][1].quaternion);
