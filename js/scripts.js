@@ -6,6 +6,7 @@ import { GLTFLoader } from "three/examples/jsm/Addons.js"; //Loader para carrega
 import appleTexture from "../textures/apple.jpg";
 import watermelonTexture from "../textures/watermelon.jpg";
 import grapeTexture from "../textures/grape.jpg";
+import { array } from "three/tsl";
 
 const basket = new URL("../assets/basket.glb", import.meta.url); //Caminho do modelo
 
@@ -159,6 +160,12 @@ function createBall(xPosition, model) {
   ballBody.position.set(xPosition, 20, 0);
   balls[balls.length] = [ballMesh, ballBody];
   world.addBody(ballBody);
+
+  ballBody.addEventListener("collide", (event) => {
+    if(event.body===planeBody){
+      scene.remove(ballMesh);
+    }
+  })
 }
 
 function getRadius(radius) {
@@ -259,8 +266,6 @@ function animate(time) {
     balls[i][0].position.copy(balls[i][1].position);
     balls[i][0].quaternion.copy(balls[i][1].quaternion);
   }
-
-  console.log(balls.length);
 
   world.step(1 / 60);
 
