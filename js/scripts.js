@@ -8,6 +8,8 @@ import watermelonTexture from "../textures/watermelon.jpg";
 import grapeTexture from "../textures/grape.jpg";
 import grasssTexture from "../textures/grama.png";
 
+import CannonDebugger from 'cannon-es-debugger'
+
 const basket = new URL("../assets/basket.glb", import.meta.url); //Caminho do modelo
 
 //Carregador de texturas e assets
@@ -39,7 +41,6 @@ scene.add(axesHelper);
 
 const world = new CANNON.World();
 world.gravity.set(0, -2, 0); // Configuração da gravidade
-
 
 const light = new THREE.DirectionalLight(0xffffff, 1);
 light.position.set(10, 10, 10);
@@ -230,6 +231,12 @@ gui.add(options, "angle", 0, 1);
 gui.add(options, "penumbra", 0, 1);
 gui.add(options, "intensity", 0, 100);
 
+//DEBUGGER MOSTRA O WIREFRAME DE TODOS OS CORPOS FÍSICOS
+const cannonDebugger = new CannonDebugger(scene, world, { 
+  color: 0xff0000,
+});
+cannonDebugger.update();
+
 //Pega e normaliza a posição do mouse
 const mousePosition = new THREE.Vector2();
 window.addEventListener("mousemove", function (e) {
@@ -289,6 +296,9 @@ function animate(time) {
 
   world.step(1 / 60);
 
+  //ATUALIZAÇÃO DO DEBUGGER
+  cannonDebugger.update();
+ 
   renderer.render(scene, camera);
 }
 
