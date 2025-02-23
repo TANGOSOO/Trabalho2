@@ -1,12 +1,12 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"; //Importa o controle da camera
 import * as dat from "dat.gui";
-import * as CANNON from 'cannon-es';
+import * as CANNON from "cannon-es";
 import { GLTFLoader } from "three/examples/jsm/Addons.js"; //Loader para carregar objetos glb do blender
 import appleTexture from "../textures/apple.jpg";
 import watermelonTexture from "../textures/watermelon.jpg";
 import grapeTexture from "../textures/grape.jpg";
-import { array } from "three/tsl";
+import { Brush, Evaluator, SUBTRACTION } from "three-bvh-csg";
 
 const basket = new URL("../assets/basket.glb", import.meta.url); //Caminho do modelo
 
@@ -52,7 +52,7 @@ plane.rotation.x = -0.5 * Math.PI;
 plane.receiveShadow = true; //Faz com que o plano receba sombra
 const planeBody = new CANNON.Body({
   type: CANNON.Body.STATIC,
-  shape: new CANNON.Box(new CANNON.Vec3(15, 15, 0.1))
+  shape: new CANNON.Box(new CANNON.Vec3(15, 15, 0.1)),
 });
 planeBody.position.set(0, 0, 0);
 planeBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
@@ -76,66 +76,68 @@ const basketBody = new CANNON.Body({
 });
 //world.addBody(basketBody);
 
-const wallGeometry = new THREE.BoxGeometry(0.05, 1.5, 2); 
-const wall2Geometry = new THREE.BoxGeometry(1.5, 0.05, 2); 
-const wall3Geometry = new THREE.BoxGeometry(2, 1.5, 0.05); 
-const wall4Geometry = new THREE.BoxGeometry(0.05, 1.5, 2); 
-const wall5Geometry = new THREE.BoxGeometry(2, 1.5, 0.05); 
+const leftWallGeometry = new THREE.BoxGeometry(0.2, 1.5, 1.5);
+const rightWallGeometry = new THREE.BoxGeometry(0.2, 1.5, 1.5);
+const topWallGeometry = new THREE.BoxGeometry(2.5, 1.5, 0.2);
+const bottomWallGeometry = new THREE.BoxGeometry(2.5, 1.5, 0.2);
+const basketBottomGeometry = new THREE.BoxGeometry(2.2, 0.2, 1.8);
 
-const wallMaterial = new THREE.MeshBasicMaterial({ 
+const wallMaterial = new THREE.MeshBasicMaterial({
   color: 0xff0000, // Vermelho
-  wireframe: true // Apenas as bordas visíveis
+  wireframe: true, // Apenas as bordas visíveis
 });
 
-// Criar as paredes
-const wall = new THREE.Mesh(wallGeometry, wallMaterial);
-const wall2 = new THREE.Mesh(wall2Geometry, wallMaterial);
-const wall3 = new THREE.Mesh(wall3Geometry, wallMaterial);
-const wall4 = new THREE.Mesh(wall4Geometry, wallMaterial);
-const wall5 = new THREE.Mesh(wall5Geometry, wallMaterial);
+const leftWall = new THREE.Mesh(leftWallGeometry, wallMaterial);
+const rightWall = new THREE.Mesh(rightWallGeometry, wallMaterial);
+const topWall = new THREE.Mesh(topWallGeometry, wallMaterial);
+const bottomWall = new THREE.Mesh(bottomWallGeometry, wallMaterial);
+const basketBottom = new THREE.Mesh(basketBottomGeometry, wallMaterial);
+leftWall.position.set(1.3, 1, 0);
+rightWall.position.set(-1.3, 1, 0);
+topWall.position.set(0, 1, -0.8);
+bottomWall.position.set(0, 1, 0.8);
+basketBottom.position.set(0, 0.5, 0);
+scene.add(leftWall);
+scene.add(rightWall);
+scene.add(topWall);
+scene.add(bottomWall);
+scene.add(basketBottom);
 
-// Adicionar as paredes à cena
-scene.add(wall);
-scene.add(wall2);
-scene.add(wall3);
-scene.add(wall4);
-scene.add(wall5);
 
-// Criar a física das paredes
-const wallBody = new CANNON.Body({
+const leftWallBody = new CANNON.Body({
+    type: CANNON.Body.STATIC, // Torna a parede estática
+    position: leftWall.position
+});
+leftWallBody.addShape(new CANNON.Box(new CANNON.Vec3(0.1, 0.75, 0.75)));
+world.addBody(leftWallBody);
+
+const rightWallBody = new CANNON.Body({
   type: CANNON.Body.STATIC, // Torna a parede estática
-  position: wall.position,
+  position: rightWall.position
 });
-wallBody.addShape(new CANNON.Box(new CANNON.Vec3(0.05, 1.5, 2))); // Defina o tamanho da parede
-world.addBody(wallBody);
+rightWallBody.addShape(new CANNON.Box(new CANNON.Vec3(0.1, 0.75, 0.75)));
+world.addBody(rightWallBody);
 
-const wall2Body = new CANNON.Body({
+const topWallBody = new CANNON.Body({
   type: CANNON.Body.STATIC, // Torna a parede estática
-  position: wall.position,
+  position: topWall.position
 });
-wallBody.addShape(new CANNON.Box(new CANNON.Vec3(1.5, 0.05, 2))); // Defina o tamanho da parede
-world.addBody(wall2Body);
+topWallBody.addShape(new CANNON.Box(new CANNON.Vec3(1.75, 0.75, 0.1)));
+world.addBody(topWallBody);
 
-const wall3Body = new CANNON.Body({
+const bottomWallBody = new CANNON.Body({
   type: CANNON.Body.STATIC, // Torna a parede estática
-  position: wall.position,
+  position: bottomWall.position
 });
-wallBody.addShape(new CANNON.Box(new CANNON.Vec3(2, 1.5, 0.05))); // Defina o tamanho da parede
-world.addBody(wall3Body);
+bottomWallBody.addShape(new CANNON.Box(new CANNON.Vec3(1.75, 0.75, 0.1)));
+world.addBody(bottomWallBody);
 
-const wall4Body = new CANNON.Body({
+const basketBottomBody = new CANNON.Body({
   type: CANNON.Body.STATIC, // Torna a parede estática
-  position: wall.position,
+  position: basketBottom.position
 });
-wallBody.addShape(new CANNON.Box(new CANNON.Vec3(0.05, 1.5, 2))); // Defina o tamanho da parede
-world.addBody(wall4Body);
-
-const wall5Body = new CANNON.Body({
-  type: CANNON.Body.STATIC, // Torna a parede estática
-  position: wall.position,
-});
-wallBody.addShape(new CANNON.Box(new CANNON.Vec3(2, 1.5, 0.05))); // Defina o tamanho da parede
-world.addBody(wall5Body);
+basketBottomBody.addShape(new CANNON.Box(new CANNON.Vec3(1.1, 0.1, 0.9)));
+world.addBody(basketBottomBody);
 
 const gridHelper = new THREE.GridHelper(30, 5); //Args: Tamanho do grid, quantidade de sctions
 scene.add(gridHelper);
@@ -146,10 +148,11 @@ var balls = [];
 function createBall(xPosition, model) {
   const ballGeometry = new THREE.SphereGeometry(getRadius(model), 32, 32);
   const ballMaterial = new THREE.MeshBasicMaterial({
-    map: textureLoader.load(getTexture(model))
+    map: textureLoader.load(getTexture(model)),
   });
   const ballMesh = new THREE.Mesh(ballGeometry, ballMaterial);
   ballMesh.receiveShadow = true;
+  ballMesh.position.set(xPosition, 20, 0);
   scene.add(ballMesh);
 
   // Criação dos corpos físicos
@@ -164,8 +167,13 @@ function createBall(xPosition, model) {
   ballBody.addEventListener("collide", (event) => {
     if(event.body===planeBody){
       scene.remove(ballMesh);
+      console.log("Floor");
     }
-  })
+    if(event.body===basketBottomBody){
+      scene.remove(ballMesh);
+      console.log("Bottom")
+    }
+  });
 }
 
 function getRadius(radius) {
@@ -210,8 +218,6 @@ gui.add(options, "angle", 0, 1);
 gui.add(options, "penumbra", 0, 1);
 gui.add(options, "intensity", 0, 100);
 
-let step = 0;
-
 //Pega e normaliza a posição do mouse
 const mousePosition = new THREE.Vector2();
 window.addEventListener("mousemove", function (e) {
@@ -220,7 +226,7 @@ window.addEventListener("mousemove", function (e) {
 });
 
 window.addEventListener("click", (event) => {
-  createBall((Math.random() * 20) - 10, Math.floor(Math.random() * 3) + 1);
+  createBall(Math.random() * 20 - 10, Math.floor(Math.random() * 3) + 1);
 });
 
 const rayCaster = new THREE.Raycaster();
@@ -241,25 +247,18 @@ function animate(time) {
 
   //Move a cesta conforme o mouse
   if (basketModel) {
-    const offset1 = new THREE.Vector3(0.8, 0.8, 0);
-    const offset2 = new THREE.Vector3(0, 0, 0);
-    const offset3 = new THREE.Vector3(0, 0.8, 0.8);
-    const offset4 = new THREE.Vector3(-0.8, 0.8, 0);
-    const offset5 = new THREE.Vector3(0, 0.8, -0.8);
+    basketModel.position.set(mousePosition.x * 15, 0, 0);
+    leftWall.position.set(basketModel.position.x-1.3, 1, 0);
+    rightWall.position.set(basketModel.position.x+1.3, 1, 0);
+    topWall.position.set(basketModel.position.x, 1, -0.8);
+    bottomWall.position.set(basketModel.position.x, 1, 0.8);
+    basketBottom.position.set(basketModel.position.x, 0.5, 0);
 
-    basketBody.position.set(mousePosition.x * 15, 0, 0);
-    wall.position.copy(basketBody.position).add(offset1);
-    wallBody.position.copy(wall.position);
-    wall2Body.position.copy(wall2.position);
-    wall3Body.position.copy(wall3.position);
-    wall4Body.position.copy(wall4.position);
-    wall5Body.position.copy(wall5.position);
-
-    wall2.position.copy(basketBody.position).add(offset2);
-    wall3.position.copy(basketBody.position).add(offset3);
-    wall4.position.copy(basketBody.position).add(offset4);
-    wall5.position.copy(basketBody.position).add(offset5);
-    basketModel.position.set(basketBody.position.x, 0, 0);
+    basketBottomBody.position.copy(basketBottom.position);
+    leftWallBody.position.copy(leftWall.position);
+    rightWallBody.position.copy(rightWall.position);
+    topWallBody.position.copy(topWall.position);
+    bottomWallBody.position.copy(bottomWall.position);
   }
 
   for (let i = 0; i < balls.length - 1; i++) {
