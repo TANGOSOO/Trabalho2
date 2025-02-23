@@ -8,6 +8,8 @@ import watermelonTexture from "../textures/watermelon.jpg";
 import grapeTexture from "../textures/grape.jpg";
 import grasssTexture from "../textures/grama.png";
 
+import CannonDebugger from 'cannon-es-debugger'
+
 const basket = new URL("../assets/basket.glb", import.meta.url); //Caminho do modelo
 
 //Carregador de texturas e assets
@@ -39,7 +41,6 @@ scene.add(axesHelper);
 
 const world = new CANNON.World();
 world.gravity.set(0, -2, 0); // Configuração da gravidade
-
 
 const light = new THREE.DirectionalLight(0xffffff, 1);
 light.position.set(10, 10, 10);
@@ -146,6 +147,32 @@ const basketBottomBody = new CANNON.Body({
 basketBottomBody.addShape(new CANNON.Box(new CANNON.Vec3(1.1, 0.1, 0.9)));
 world.addBody(basketBottomBody);
 
+//Adiciona barreiras na área que a bola cai
+const xPositiveConstraintWallBody = new CANNON.Body({
+  type: CANNON.Body.STATIC,
+  position: new CANNON.Vec3(15, 15, 0),
+  shape: new CANNON.Box(new CANNON.Vec3(0.1, 15, 1.25))
+})
+world.addBody(xPositiveConstraintWallBody);
+const xNegativeConstraintWallBody = new CANNON.Body({
+  type: CANNON.Body.STATIC,
+  position: new CANNON.Vec3(-15, 15, 0),
+  shape: new CANNON.Box(new CANNON.Vec3(0.1, 15, 1.25))
+})
+world.addBody(xNegativeConstraintWallBody);
+const zPositiveConstraintWallBody = new CANNON.Body({
+  type: CANNON.Body.STATIC,
+  position: new CANNON.Vec3(0, 15, 1.25),
+  shape: new CANNON.Box(new CANNON.Vec3(15, 15, 0.1))
+})
+world.addBody(zPositiveConstraintWallBody);
+const zNegativeConstraintWallBody = new CANNON.Body({
+  type: CANNON.Body.STATIC,
+  position: new CANNON.Vec3(0, 15, -1.25),
+  shape: new CANNON.Box(new CANNON.Vec3(15, 15, 0.1))
+})
+world.addBody(zNegativeConstraintWallBody);
+
 const gridHelper = new THREE.GridHelper(30, 5);
 scene.add(gridHelper);
 
@@ -169,6 +196,7 @@ function createBall(xPosition, model) {
     mass: 1,
   });
   ballBody.position.set(xPosition, 20, 0);
+  ballBody.velocity.set((Math.random()*25 - 12.5), 0, 0); //Randomiza a velocidade inicial
   let ball=[ballMesh, ballBody];
   balls[balls.length] = ball;
   world.addBody(ballBody);
@@ -183,6 +211,7 @@ function createBall(xPosition, model) {
     if(event.body===basketBottomBody && ballBody.flagRemove===false){
       ballsToRemove.push(ball);
       ballBody.flagRemove=true;
+      createBall(Math.random() * 20 - 10, Math.floor(Math.random() * 3) + 1);
       console.log("Bottom")
     }
   });
@@ -231,6 +260,17 @@ const options = {
 gui.add(options, "angle", 0, 1);
 gui.add(options, "penumbra", 0, 1);
 gui.add(options, "intensity", 0, 100);
+
+const simulFolder = gui.addFolder('Simulação');
+simulFolder.add(world.gravity, 'y', -20,-0.1).step(0.1).name('Gravidade');
+simulFolder.open();
+
+//DEBUGGER MOSTRA O WIREFRAME DE TODOS OS CORPOS FÍSICOS
+const cannonDebugger = new CannonDebugger(scene, world, { 
+  color: 0xff0000,
+});
+cannonDebugger.update();
+
 gui.add(options, "gravityx", -20, 20);
 gui.add(options, "gravityy", -20, 20);
 //Pega e normaliza a posição do mouse
@@ -294,6 +334,9 @@ function animate(time) {
 
   world.step(1 / 60);
 
+  //ATUALIZAÇÃO DO DEBUGGER
+  cannonDebugger.update();
+ 
   renderer.render(scene, camera);
 }
 
