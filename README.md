@@ -34,3 +34,55 @@ A cesta pode ser movida horizontalmente com o mouse para tentar "capturar" as bo
    - As bolas colidem com o chão ou com a cesta e são removidas da cena após a colisão.
 
 ---
+
+## Criação das bolas
+
+   - **Descrição**: Cria uma bola com textura e tamanho específicos.
+   - **Parâmetros**:
+     - `xPosition`: Posição horizontal (eixo X) onde a bola será criada.
+     - `model`: Um número que define o tipo de bola (1 para maçã, 2 para melancia, 3 para uva).
+   - **Funcionamento**:
+     - Gera uma geometria esférica com base no tipo de bola.
+     - Aplica uma textura correspondente ao tipo de bola.
+     - Cria um corpo físico (`CANNON.Body`) para a bola e define sua posição e velocidade inicial.
+     - Adiciona a bola à cena e ao mundo físico.
+     - Configura um listener para detectar colisões com o chão ou a cesta.
+    
+ ```
+unction createBall(xPosition, model) {
+  const ballGeometry = new THREE.SphereGeometry(getRadius(model), 32, 32);
+  const ballMaterial = new THREE.MeshBasicMaterial({
+    map: textureLoader.load(getTexture(model)),
+  });
+  const ballMesh = new THREE.Mesh(ballGeometry, ballMaterial);
+  ballMesh.receiveShadow = true;
+  ballMesh.position.set(xPosition, 20, 0);
+  scene.add(ballMesh);
+
+  // Criação dos corpos físicos
+  const ballBody = new CANNON.Body({
+    shape: new CANNON.Sphere(getRadius(model)),
+    mass: 1,
+  });
+  ballBody.position.set(xPosition, 20, 0);
+  ballBody.velocity.set((Math.random()*25 - 12.5), 0, 0); //Randomiza a velocidade inicial
+  let ball=[ballMesh, ballBody];
+  balls[balls.length] = ball;
+  world.addBody(ballBody);
+  ballBody.flagRemove=false;;
+
+  ballBody.addEventListener("collide", (event) => {
+    if(event.body===planeBody && ballBody.flagRemove===false){
+      ballsToRemove.push(ball);
+      ballBody.flagRemove=true;
+      console.log("Floor");
+    }
+    if(event.body===basketBottomBody && ballBody.flagRemove===false){
+      ballsToRemove.push(ball);
+      ballBody.flagRemove=true;
+      console.log("Bottom")
+    }
+  });
+}
+```
+
