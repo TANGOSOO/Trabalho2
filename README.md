@@ -86,6 +86,18 @@ unction createBall(xPosition, model) {
 }
 ```
 
+### Câmera
+- **Tipo**: `THREE.PerspectiveCamera`
+  - A câmera é configurada com um campo de visão (FOV) de 45 graus, proporção de aspecto (`aspect`) baseada na largura e altura da janela, e planos de corte (`near` e `far`) para definir o que é visível.
+  - Posição inicial: `(0, 20, 20)`.
+  - Direção: A câmera olha para o ponto `(0, 0, 0)`.
+
+### Controles de Câmera
+- **OrbitControls**:
+  - Permite ao usuário mover a câmera livremente pela cena, rotacionando, ampliando e deslocando.
+  - Habilitado com `OrbitControls(camera, renderer.domElement)`.
+  - Atualizado a cada frame com `orbit.update()`.
+
 ## Projeto hospedado no Vercel
 
 Disponível em [https://sistema-solar-silk.vercel.app/](linkdovercel)
