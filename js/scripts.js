@@ -326,6 +326,9 @@ function animate(time) {
   if(cont==delay){
     createBall(Math.random() * 20 - 10, Math.floor(Math.random() * 3) + 1);
     cont=0;
+    if(cont>=60/options["Balls per Second"]){
+      cont=0;
+    }
   }else{
     cont++;
   }
