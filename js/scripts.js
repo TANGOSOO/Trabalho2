@@ -224,12 +224,15 @@ const options = {
   angle: 10,
   penumbra: 0,
   intensity: 50,
+  gravityx: 0,
+  gravityy: -2,
 };
 
 gui.add(options, "angle", 0, 1);
 gui.add(options, "penumbra", 0, 1);
 gui.add(options, "intensity", 0, 100);
-
+gui.add(options, "gravityx", -20, 20);
+gui.add(options, "gravityy", -20, 20);
 //Pega e normaliza a posição do mouse
 const mousePosition = new THREE.Vector2();
 window.addEventListener("mousemove", function (e) {
@@ -256,6 +259,8 @@ function animate(time) {
   spotLight.angle = options.angle;
   spotLight.penumbra = options.penumbra;
   spotLight.intensity = options.intensity * 600;
+
+  world.gravity.set(options.gravityx, options.gravityy, 0);
 
   rayCaster.setFromCamera(mousePosition, camera);
 
