@@ -293,6 +293,62 @@ const intersection = new THREE.Vector3();
 let delay=0;
 let cont=0;
 
+//TIMER
+const uiScene = new THREE.Scene();
+const uiCamera = new THREE.OrthographicCamera( - window.innerWidth / 2, window.innerWidth / 2, window.innerHeight / 2, - window.innerHeight / 2, 1, 10 );
+uiCamera.position.z = 1;
+
+const numberTextures = {};
+for (let i = 0; i <= 9; i++) {
+    numberTextures[i] = textureLoader.load(`../sprites/${i}.png`);
+}
+const dpTexture = textureLoader.load('../sprites/dp.png');
+
+// Criar material e sprites para os números do timer
+function createSprite(texture) {
+    const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+    return new THREE.Sprite(material);
+}
+
+// Criar os sprites para MM:SS
+const timeSprites = [
+    createSprite(numberTextures[0]), // M1
+    createSprite(numberTextures[0]), // M2
+    createSprite(dpTexture),      // :
+    createSprite(numberTextures[0]), // S1
+    createSprite(numberTextures[0])  // S2
+];
+
+// Posicionar os sprites no topo da tela
+const startX = -50; // Adjusted start position
+const spacing = 25; // Adjusted spacing
+timeSprites.forEach((sprite, i) => {
+    sprite.position.set(startX + i * spacing, window.innerHeight / 2 - 20, 0); // Adjusted Y position
+    sprite.scale.set(25, 25, 1); // Ensure sprites are scaled to be visible
+    uiScene.add(sprite);
+});
+
+// Função para atualizar o timer
+let startTime = Date.now();
+function updateTimer() {
+    let elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+    let minutes = Math.floor(elapsedSeconds / 60);
+    let seconds = elapsedSeconds % 60;
+
+    let timeStr = `${String(minutes).padStart(2, '0')}${String(seconds).padStart(2, '0')}`;
+
+    // Atualizar as texturas dos sprites
+    timeSprites[0].material.map = numberTextures[timeStr[0]];
+    timeSprites[1].material.map = numberTextures[timeStr[1]];
+    timeSprites[3].material.map = numberTextures[timeStr[2]];
+    timeSprites[4].material.map = numberTextures[timeStr[3]];
+
+    // Ensure the textures are updated
+    timeSprites.forEach(sprite => {
+        sprite.material.map.needsUpdate = true;
+    });
+}
+
 function animate(time) {
   spotLight.angle = options.angle;
   spotLight.penumbra = options.penumbra;
@@ -344,8 +400,27 @@ function animate(time) {
 
   //ATUALIZAÇÃO DO DEBUGGER
   cannonDebugger.update();
+
+  updateTimer();
+  renderer.autoClear = false;
+  renderer.clearDepth();
  
   renderer.render(scene, camera);
+  renderer.render(uiScene, uiCamera);
 }
 
 renderer.setAnimationLoop(animate); //Seta qual é o método de animação
+
+window.addEventListener('resize', () => {
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  uiCamera.left = window.innerWidth / -2;
+  uiCamera.right = window.innerWidth / 2;
+  uiCamera.top = window.innerHeight / 2;
+  uiCamera.bottom = window.innerHeight / -2;
+  uiCamera.updateProjectionMatrix();
+
+  // Update sprite positions on resize
+  timeSprites.forEach((sprite, i) => {
+      sprite.position.set(startX + i * spacing, window.innerHeight / 2 - 100, 0);
+  });
+});
