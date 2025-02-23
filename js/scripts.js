@@ -6,6 +6,7 @@ import { GLTFLoader } from "three/examples/jsm/Addons.js"; //Loader para carrega
 import appleTexture from "../textures/apple.jpg";
 import watermelonTexture from "../textures/watermelon.jpg";
 import grapeTexture from "../textures/grape.jpg";
+import grasssTexture from "../textures/grama.png";
 
 const basket = new URL("../assets/basket.glb", import.meta.url); //Caminho do modelo
 
@@ -39,9 +40,16 @@ scene.add(axesHelper);
 const world = new CANNON.World();
 world.gravity.set(0, -2, 0); // Configuração da gravidade
 
+
+const light = new THREE.DirectionalLight(0xffffff, 1);
+light.position.set(10, 10, 10);
+scene.add(light);
+
+
 //Construção do plano
 const planeGeometry = new THREE.PlaneGeometry(30, 30);
-const planeMaterial = new THREE.MeshStandardMaterial({
+const planeMaterial = new THREE.MeshBasicMaterial({
+  map: textureLoader.load(grasssTexture),
   color: 0xffffff,
   side: THREE.DoubleSide,
 });
@@ -82,8 +90,8 @@ const bottomWallGeometry = new THREE.BoxGeometry(2.5, 1.5, 0.2);
 const basketBottomGeometry = new THREE.BoxGeometry(2.2, 0.2, 1.8);
 
 const wallMaterial = new THREE.MeshBasicMaterial({
-  color: 0xff0000, // Vermelho
-  wireframe: true, // Apenas as bordas visíveis
+  transparent: true,
+  opacity: 0
 });
 
 const leftWall = new THREE.Mesh(leftWallGeometry, wallMaterial);
@@ -132,16 +140,16 @@ bottomWallBody.addShape(new CANNON.Box(new CANNON.Vec3(1.75, 0.75, 0.1)));
 world.addBody(bottomWallBody);
 
 const basketBottomBody = new CANNON.Body({
-  type: CANNON.Body.STATIC, // Torna a parede estática
+  type: CANNON.Body.STATIC,
   position: basketBottom.position
 });
 basketBottomBody.addShape(new CANNON.Box(new CANNON.Vec3(1.1, 0.1, 0.9)));
 world.addBody(basketBottomBody);
 
-const gridHelper = new THREE.GridHelper(30, 5); //Args: Tamanho do grid, quantidade de sctions
+const gridHelper = new THREE.GridHelper(30, 5);
 scene.add(gridHelper);
 
-//vetor de bolas
+//vetor de BOLAS
 var balls = [];
 var ballsToRemove = [];
 
