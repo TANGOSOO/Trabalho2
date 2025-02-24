@@ -24,12 +24,12 @@ document.body.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
-  45, //fov
+  90, //fov
   window.innerWidth / window.innerHeight, //aspect
   0.1, //near
   1000 //far
 );
-camera.position.set(0, 20, 20); //Muda a posição do objeto
+camera.position.set(0, 9, 13); //Muda a posição do objeto
 camera.lookAt(0, 0, 0); //Muda o lugar que a câmera olha
 
 // Descomente essas linhas para poder mexer a camera
@@ -45,6 +45,34 @@ world.gravity.set(0, -2, 0); // Configuração da gravidade
 const light = new THREE.DirectionalLight(0xffffff, 1);
 light.position.set(10, 10, 10);
 scene.add(light);
+
+/*const cubeTextureLoader=new THREE.CubeTextureLoader();
+scene.background = cubeTextureLoader.load([
+  '../textures/cubemap/px.png',
+  '../textures/cubemap/nx.png',
+  '../textures/cubemap/py.png',
+  '../textures/cubemap/ny.png',
+  '../textures/cubemap/pz.png',
+  '../textures/cubemap/nz.png',
+]);*/
+
+const size = 100; // Adjust this value to change the skybox size
+
+const geometry = new THREE.BoxGeometry(size, size, size);
+const materialArray = [
+  new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('../textures/cubemap/px.png'), side: THREE.BackSide }),
+  new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('../textures/cubemap/nx.png'), side: THREE.BackSide }),
+  new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('../textures/cubemap/py.png'), side: THREE.BackSide }),
+  new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('../textures/cubemap/ny.png'), side: THREE.BackSide }),
+  new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('../textures/cubemap/pz.png'), side: THREE.BackSide }),
+  new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('../textures/cubemap/nz.png'), side: THREE.BackSide })
+];
+
+const skybox = new THREE.Mesh(geometry, materialArray);
+skybox.position.set(0, 49, 0);
+skybox.rotateY(-Math.PI/2);
+skybox.position.set(2, 49, 0);
+scene.add(skybox);
 
 
 //Construção do plano
@@ -207,9 +235,9 @@ function createBall(xPosition, model) {
 
   ballBody.addEventListener("collide", (event) => {
     if(event.body===planeBody && ballBody.flagRemove===false){
-      if(model == 1) score -= 10;
-      if(model == 2) score -= 5;
-      if(model == 3) score -= 1;
+      //if(model == 1) score -= 10;
+      //if(model == 2) score -= 5;
+      //if(model == 3) score -= 1;
       ballsToRemove.push(ball);
       ballBody.flagRemove=true;
       console.log("Floor");
@@ -371,7 +399,7 @@ const scoreSprites = [
 const scoreStartX = -50; // Adjusted start position
 const scoreSpacing = 25; // Adjusted spacing
 scoreSprites.forEach((sprite, i) => {
-    sprite.position.set(startX + i * spacing, - window.innerHeight / 2 + 200, 0); // Adjusted Y position
+    sprite.position.set(scoreStartX + i * scoreSpacing, - window.innerHeight / 2 + 200, 0); // Adjusted Y position
     sprite.scale.set(25, 25, 1); // Ensure sprites are scaled to be visible
     uiScene.add(sprite);
 });
@@ -382,9 +410,9 @@ scoreSprites[4].scale.set(50,25,1);
 function updateScoreboard()
 {
   if(score<0) score = 0;
-  let m4 = Math.floor(score / 1000);
-  let m3 = Math.floor(score / 100);
-  let m2 = Math.floor(score / 10);
+  let m4 = Math.floor(score / 1000)%10;
+  let m3 = Math.floor(score / 100)%10;
+  let m2 = Math.floor(score / 10)%10;
   let m1 = score % 10;
 
   // Atualizar as texturas dos sprites
@@ -393,7 +421,7 @@ function updateScoreboard()
   scoreSprites[2].material.map = numberTextures[m2];
   scoreSprites[3].material.map = numberTextures[m1];
 
-  // Ensure the textures are updated
+  //Ensure the textures are updated
   scoreSprites.forEach(sprite => {
       sprite.material.map.needsUpdate = true;
   });
@@ -479,6 +507,8 @@ window.addEventListener('resize', () => {
   });
 
   scoreSprites.forEach((sprite, i) => {
-    sprite.position.set(startX + i * spacing, - window.innerHeight / 2 + 200, 0);
+    sprite.position.set(scoreStartX + i * scoreSpacing, - window.innerHeight / 2 + 200, 0);
 });
+  scoreSprites[4].position.set(startX + 4 * spacing + 30, - window.innerHeight / 2 + 200, 0);
+
 });
