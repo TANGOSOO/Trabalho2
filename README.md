@@ -97,6 +97,18 @@ unction createBall(xPosition, model) {
   - Permite ao usuário mover a câmera livremente pela cena, rotacionando, ampliando e deslocando.
   - Habilitado com `OrbitControls(camera, renderer.domElement)`.
   - Atualizado a cada frame com `orbit.update()`.
+ 
+  - ### Movimento da Cesta com o Mouse
+- **Funcionamento**:
+  - A posição do mouse é capturada com o evento `mousemove`.
+  - Um `Raycaster` é usado para calcular a interseção entre o raio do mouse e um plano invisível na cena.
+  - A cesta é movida horizontalmente com base na posição do mouse, mantendo-se alinhada ao eixo X.
+  - As paredes e o fundo da cesta também são movidos para acompanhar a cesta.
+
+### Interação com o Mouse
+- **Evento `click`**:
+  - Quando o usuário clica na tela, uma nova bola é gerada na posição horizontal do mouse.
+  - A bola é criada com um tipo aleatório.
 
 ## Projeto hospedado no Vercel
 
