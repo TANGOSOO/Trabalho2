@@ -48,7 +48,7 @@ A cesta pode ser movida horizontalmente com o mouse para tentar "capturar" as bo
      - Adiciona a bola à cena e ao mundo físico.
      - Configura um listener para detectar colisões com o chão ou a cesta.
     
- ```
+ ```javascript
 function createBall(xPosition, model) {
   const ballGeometry = new THREE.SphereGeometry(getRadius(model), 32, 32);
   const ballMaterial = new THREE.MeshBasicMaterial({
@@ -94,7 +94,7 @@ function createBall(xPosition, model) {
      - Atualiza o mundo físico e renderiza a cena.
      - Remove bolas que colidiram com o chão ou a cesta.
     
-   ```
+   ```javascript
 function animate(time) {
   spotLight.angle = options.angle;
   spotLight.penumbra = options.penumbra;
@@ -166,6 +166,51 @@ function animate(time) {
        - Ângulo e intensidade do holofote.
        - Gravidade da simulação.
        - Taxa de geração de bolas.
+```
+const gui = new dat.GUI();
+```
+
+###  **Função para atualizar o timer**
+   - **Descrição**: Atualiza um timer visual na cena, exibindo o tempo decorrido desde o início da simulação.
+   - **Funcionamento**:
+     1. **Cálculo do Tempo Decorrido**:
+        - O tempo inicial (`startTime`) é armazenado no início da simulação usando `Date.now()`.
+        - A cada chamada da função, o tempo decorrido é calculado em segundos.
+        - O tempo é convertido em minutos e segundos.
+     2. **Formatação do Tempo**:
+        - O tempo é formatado como uma string no formato `MMSS`, onde `MM` são os minutos e `SS` são os segundos.
+        - Exemplo: `03:45` é representado como `"0345"`.
+     3. **Atualização das Texturas**:
+        - A string do tempo é usada para atualizar as texturas de sprites que representam os dígitos do timer.
+        - Cada dígito do tempo é mapeado para uma textura correspondente (por exemplo, `numberTextures["3"]` para o dígito `3`).
+     4. **Atualização das Texturas na Cena**:
+        - As texturas dos sprites são atualizadas para refletir o tempo atual.
+        - A propriedade `needsUpdate` é definida como `true` para garantir que as texturas sejam renderizadas corretamente.
+   - **Exemplo de Uso**:
+     - Se o tempo decorrido for 2 minutos e 30 segundos, a função atualiza os sprites para exibir `02:30`.
+
+```javascript
+let startTime = Date.now();
+function updateTimer() {
+    let elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+    let minutes = Math.floor(elapsedSeconds / 60);
+    let seconds = elapsedSeconds % 60;
+
+    let timeStr = `${String(minutes).padStart(2, '0')}${String(seconds).padStart(2, '0')}`;
+
+    // Atualizar as texturas dos sprites
+    timeSprites[0].material.map = numberTextures[timeStr[0]];
+    timeSprites[1].material.map = numberTextures[timeStr[1]];
+    timeSprites[3].material.map = numberTextures[timeStr[2]];
+    timeSprites[4].material.map = numberTextures[timeStr[3]];
+
+    // Ensure the textures are updated
+    timeSprites.forEach(sprite => {
+        sprite.material.map.needsUpdate = true;
+    });
+}
+```
+
 ### Câmera
 - **Tipo**: `THREE.PerspectiveCamera`
   - A câmera é configurada com um campo de visão (FOV) de 45 graus, proporção de aspecto (`aspect`) baseada na largura e altura da janela, e planos de corte (`near` e `far`) para definir o que é visível.
