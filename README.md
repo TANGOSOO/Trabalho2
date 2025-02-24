@@ -49,7 +49,7 @@ A cesta pode ser movida horizontalmente com o mouse para tentar "capturar" as bo
      - Configura um listener para detectar colisões com o chão ou a cesta.
     
  ```
-unction createBall(xPosition, model) {
+function createBall(xPosition, model) {
   const ballGeometry = new THREE.SphereGeometry(getRadius(model), 32, 32);
   const ballMaterial = new THREE.MeshBasicMaterial({
     map: textureLoader.load(getTexture(model)),
@@ -85,7 +85,87 @@ unction createBall(xPosition, model) {
   });
 }
 ```
+### Função animate
+   - **Descrição**: Função principal de animação, chamada continuamente para atualizar a cena e a física.
+   - **Funcionamento**:
+     - Atualiza a posição da cesta com base na posição do mouse.
+     - Gera novas bolas em intervalos regulares, dependendo da taxa configurada na GUI.
+     - Sincroniza as posições e rotações dos objetos 3D com os corpos físicos.
+     - Atualiza o mundo físico e renderiza a cena.
+     - Remove bolas que colidiram com o chão ou a cesta.
+    
+   ```
+function animate(time) {
+  spotLight.angle = options.angle;
+  spotLight.penumbra = options.penumbra;
+  spotLight.intensity = options.intensity * 600;
 
+  delay=60/options["Balls per Second"];
+
+  rayCaster.setFromCamera(mousePosition, camera);
+
+  // Calcula onde o raio intercepta o plano
+  rayCaster.ray.intersectPlane(movPlane, intersection);
+
+  const intersects = rayCaster.intersectObjects(scene.children); //Pega todos os objetos que são interceptados pelo ray
+
+  //Move a cesta conforme o mouse
+  if (basketModel) {
+    basketModel.position.set(mousePosition.x * 15, 0, 0);
+    leftWall.position.set(basketModel.position.x-1.3, 1, 0);
+    rightWall.position.set(basketModel.position.x+1.3, 1, 0);
+    topWall.position.set(basketModel.position.x, 1, -0.8);
+    bottomWall.position.set(basketModel.position.x, 1, 0.8);
+    basketBottom.position.set(basketModel.position.x, 0.5, 0);
+
+    basketBottomBody.position.copy(basketBottom.position);
+    leftWallBody.position.copy(leftWall.position);
+    rightWallBody.position.copy(rightWall.position);
+    topWallBody.position.copy(topWall.position);
+    bottomWallBody.position.copy(bottomWall.position);
+  }
+
+  if(cont==delay){
+    createBall(Math.random() * 20 - 10, Math.floor(Math.random() * 3) + 1);
+    cont=0;
+    if(cont>=60/options["Balls per Second"]){
+      cont=0;
+    }
+  }else{
+    cont++;
+  }
+
+  for (let i = 0; i < balls.length; i++) {
+    if(world.bodies.includes(balls[i][1])){
+      balls[i][0].position.copy(balls[i][1].position);
+      balls[i][0].quaternion.copy(balls[i][1].quaternion);
+    }
+  }
+
+  world.step(1 / 60);
+
+  //ATUALIZAÇÃO DO DEBUGGER
+  cannonDebugger.update();
+
+  //ATUALIZAÇÃO DO SCOREBOARD
+  updateScoreboard();
+
+  updateTimer();
+  renderer.autoClear = false;
+  renderer.clearDepth();
+ 
+  renderer.render(scene, camera);
+  renderer.render(uiScene, uiCamera);
+}
+```
+    
+### GUI (Interface Gráfica)
+   - **Descrição**: Permite ao usuário ajustar parâmetros da simulação.
+   - **Funcionamento**:
+     - Cria uma interface interativa com controles para:
+       - Ângulo e intensidade do holofote.
+       - Gravidade da simulação.
+       - Taxa de geração de bolas.
 ### Câmera
 - **Tipo**: `THREE.PerspectiveCamera`
   - A câmera é configurada com um campo de visão (FOV) de 45 graus, proporção de aspecto (`aspect`) baseada na largura e altura da janela, e planos de corte (`near` e `far`) para definir o que é visível.
