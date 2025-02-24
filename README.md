@@ -166,9 +166,30 @@ function animate(time) {
        - Ângulo e intensidade do holofote.
        - Gravidade da simulação.
        - Taxa de geração de bolas.
-```
+```javascript
 const gui = new dat.GUI();
 ```
+
+### CannonDebugger
+   - **Descrição**: Ferramenta para visualizar os corpos físicos na cena.
+   - **Funcionamento**:
+     - Desenha wireframes dos corpos físicos, ajudando no desenvolvimento e depuração.
+
+```javascript
+
+//DEBUGGER MOSTRA O WIREFRAME DE TODOS OS CORPOS FÍSICOS
+const cannonDebugger = new CannonDebugger(scene, world, { 
+  color: 0xff0000,
+});
+cannonDebugger.update();
+//Pega e normaliza a posição do mouse
+const mousePosition = new THREE.Vector2();
+window.addEventListener("mousemove", function (e) {
+  mousePosition.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mousePosition.y = -(e.clientY / window.innerHeight) * 2 + 1;
+});
+```
+
 
 ###  **Função para atualizar o timer**
    - **Descrição**: Atualiza um timer visual na cena, exibindo o tempo decorrido desde o início da simulação.
