@@ -10,6 +10,8 @@ import grasssTexture from "../textures/grama.png";
 
 import CannonDebugger from 'cannon-es-debugger'
 
+
+
 const basket = new URL("../assets/basket.glb", import.meta.url); //Caminho do modelo
 
 //Carregador de texturas e assets
@@ -204,6 +206,28 @@ world.addBody(zNegativeConstraintWallBody);
 const gridHelper = new THREE.GridHelper(30, 5);
 scene.add(gridHelper);
 
+const listener = new THREE.AudioListener();
+camera.add(listener);
+
+const sound = new THREE.Audio(listener);
+const audioLoader = new THREE.AudioLoader();
+
+
+audioLoader.load('./music/background-music.mp3', function(buffer) {
+  console.log("Áudio carregado com sucesso!");
+  sound.setBuffer(buffer);
+  sound.setLoop(true);
+  sound.setVolume(0.5);
+
+  // Reproduz o áudio após o primeiro clique do usuário
+  window.addEventListener("click", () => {
+      if (!sound.isPlaying) {
+          sound.play();
+      }
+  });
+}, function(error) {
+  console.error("Erro ao carregar o áudio:", error);
+});
 //Pontuação
 let score = 0;
 
@@ -290,12 +314,20 @@ const options = {
   penumbra: 0,
   intensity: 50,
   "Balls per Second": 1,
+  mute: false
 };
 
 gui.add(options, "angle", 0, 1);
 gui.add(options, "penumbra", 0, 1);
 gui.add(options, "intensity", 0, 100);
 gui.add(options, "Balls per Second", 1, 10, 1);
+gui.add(options, "mute").name("Mute").onChange(function(value) {
+  if (value) {
+      sound.setVolume(0); // Muta o áudio
+  } else {
+      sound.setVolume(0.5); // Desmuta o áudio (volta ao volume original)
+  }
+});
 const simulFolder = gui.addFolder('Simulação');
 simulFolder.add(world.gravity, 'y', -20,-0.1).step(0.1).name('Gravidade');
 simulFolder.open();
