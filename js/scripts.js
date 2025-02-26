@@ -338,9 +338,9 @@ function createBall(xPosition, model) {
 
   ballBody.addEventListener("collide", (event) => {
     if(event.body===planeBody && ballBody.flagRemove===false){
-      //if(model == 1) score -= 10;
-      //if(model == 2) score -= 5;
-      //if(model == 3) score -= 1;
+      if(model == 1) score -= 10;
+      if(model == 2) score -= 5;
+      if(model == 3) score -= 1;
       ballsToRemove.push(ball);
       ballBody.flagRemove=true;
       console.log("Floor");
