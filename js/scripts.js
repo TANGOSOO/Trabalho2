@@ -663,6 +663,116 @@ function updateScoreboard() {
   let m4 = Math.floor(score / 1000) % 10;
   let m3 = Math.floor(score / 100) % 10;
   let m2 = Math.floor(score / 10) % 10;
+//Criação dos fogos de artificio
+function createFirework() {
+  const numberOfFireworks = 5; // Número de fogos que explodem ao mesmo tempo
+  const particleCount = 200; // Número de partículas
+  const explosionHeight = 10; // Altura da explosão
+
+  for (let f = 0; f < numberOfFireworks; f++) {
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+    const velocities = new Float32Array(particleCount * 3);
+    const colors = new Float32Array(particleCount * 3);
+
+    // Local da explosao
+    const explosionPoint = new THREE.Vector3(
+      (Math.random() - 0.5) * 30, // Posição X 
+      explosionHeight,
+      (Math.random() - 0.5) * 30 // Posição Z
+    );
+
+    for (let i = 0; i < particleCount; i++) {
+      // Posição inicial no ponto de explosão
+      positions[i * 3] = explosionPoint.x;
+      positions[i * 3 + 1] = explosionPoint.y;
+      positions[i * 3 + 2] = explosionPoint.z;
+
+      // Velocidade inicial 
+      const angle = Math.random() * Math.PI * 2; 
+      const speed = Math.random() * 2 + 1; // Velocidade aleatória
+      velocities[i * 3] = Math.cos(angle) * speed; // X
+      velocities[i * 3 + 1] = Math.random() * 2 + 1; // Y (para cima)
+      velocities[i * 3 + 2] = Math.sin(angle) * speed; // Z
+
+      // Cor aleatória para cada partícula
+      colors[i * 3] = Math.random(); // R
+      colors[i * 3 + 1] = Math.random(); // G
+      colors[i * 3 + 2] = Math.random(); // B
+    }
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    const material = new THREE.PointsMaterial({
+      size: 0.3,
+      vertexColors: true, // Ativa cores individuais para cada partícula
+      transparent: true,
+      opacity: 1,
+      blending: THREE.AdditiveBlending, // Da um brilho doideira
+    });
+
+    const firework = new THREE.Points(geometry, material);
+    scene.add(firework);
+
+    let frames = 240; // Faz o efeito durar uns segundos
+
+    function updateFirework() {
+      if (frames-- <= 0) {
+        scene.remove(firework);
+        geometry.dispose();
+        material.dispose();
+        return;
+      }
+
+      const positions = geometry.attributes.position.array;
+      const velocities = geometry.attributes.velocity.array;
+      const colors = geometry.attributes.color.array;
+
+      for (let i = 0; i < particleCount; i++) {
+        // Atualiza a posição com base na velocidade
+        positions[i * 3] += velocities[i * 3] * 0.1; // X
+        positions[i * 3 + 1] += velocities[i * 3 + 1] * 0.1; // Y
+        positions[i * 3 + 2] += velocities[i * 3 + 2] * 0.1; // Z
+
+        // Faz as particulas cairem
+        velocities[i * 3 + 1] -= 0.02;
+
+        // Efeito de sumir das negocinhas 
+        colors[i * 3] *= 0.98;
+        colors[i * 3 + 1] *= 0.98;
+        colors[i * 3 + 2] *= 0.98;
+      }
+
+      geometry.attributes.position.needsUpdate = true;
+      geometry.attributes.color.needsUpdate = true;
+      material.opacity = frames / 240; // efeito de sumuir
+    }
+
+    const fireworkInterval = setInterval(() => {
+      if (frames-- <= 0) {
+        clearInterval(fireworkInterval);
+        scene.remove(firework);
+        geometry.dispose();
+        material.dispose();
+      } else {
+        updateFirework();
+      }
+    }, 16);
+  }
+}
+
+
+let lastFireworkScore = 0; // Variável para armazenar o último score que soltou fogos
+
+function updateScoreboard() {
+  if (score < 0) score = 0;
+
+  // Atualiza o display do score
+  let m4 = Math.floor(score / 1000) % 10;
+  let m3 = Math.floor(score / 100) % 10;
+  let m2 = Math.floor(score / 10) % 10;
   let m1 = score % 10;
 
   // Atualizar as texturas dos sprites
@@ -673,6 +783,7 @@ function updateScoreboard() {
 
   scoreSprites.forEach(sprite => {
     sprite.material.map.needsUpdate = true;
+    sprite.material.map.needsUpdate = true;
   });
 
   // Verifica se a pontuação ultrapassou um múltiplo de 100
@@ -680,7 +791,17 @@ function updateScoreboard() {
     createFirework(); // Ativa o efeito de fogos de artifício
     lastFireworkScore = score; // Atualiza o último score que soltou fogos
   }
+  // Verifica se a pontuação ultrapassou um múltiplo de 100
+  if (Math.floor(score / 100) > Math.floor(lastFireworkScore / 100)) {
+    createFirework(); // Ativa o efeito de fogos de artifício
+    lastFireworkScore = score; // Atualiza o último score que soltou fogos
+  }
 }
+
+
+
+particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
 
 
 
