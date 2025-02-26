@@ -3,11 +3,12 @@
     "cannon-es": "^0.20.0",
     "cannon-es-debugger": "^1.0.0",
     "dat.gui": "^0.7.9",
+    "esbuild": "^0.25.0",
     "three": "^0.173.0",
     "three-bvh-csg": "^0.0.16",
     "three-mesh-bvh": "^0.9.0"
   },
   "devDependencies": {
-    "vite": "^6.1.1"
+    "vite": "^6.2.0"
   }
 }
