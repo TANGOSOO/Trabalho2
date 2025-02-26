@@ -158,6 +158,26 @@ function animate(time) {
   renderer.render(uiScene, uiCamera);
 }
 ```
+
+### **getRadius(radius)**
+   - **Descrição**: Retorna o raio da bola com base no tipo.
+   - **Parâmetros**:
+     - `radius`: Um número que define o tipo de bola (1, 2 ou 3).
+   - **Retorno**: O raio da bola correspondente.
+
+```javascript
+function getRadius(radius)
+```
+
+### **getTexture(texture)**
+   - **Descrição**: Retorna a textura da bola com base no tipo.
+   - **Parâmetros**:
+     - `texture`: Um número que define o tipo de bola (1, 2 ou 3).
+   - **Retorno**: A textura correspondente.
+
+```javascript
+function getTexture(texture)
+```
     
 ### GUI (Interface Gráfica)
    - **Descrição**: Permite ao usuário ajustar parâmetros da simulação.
