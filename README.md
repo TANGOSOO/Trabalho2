@@ -276,12 +276,6 @@ function updateTimer() {
   - Quando o usuário clica na tela, uma nova bola é gerada na posição horizontal do mouse.
   - A bola é criada com um tipo aleatório.
 
-## Projeto hospedado no Vercel
 
-Disponível em [https://sistema-solar-silk.vercel.app/](linkdovercel)
-
-## Link da Demonstração do projeto
-
-link do video
 
 
