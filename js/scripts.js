@@ -7,23 +7,30 @@ import appleTexture from "../textures/apple.jpg";
 import watermelonTexture from "../textures/watermelon.jpg";
 import grapeTexture from "../textures/grape.jpg";
 import grasssTexture from "../textures/grama.png";
-
 import CannonDebugger from 'cannon-es-debugger'
+import { texture, textureLoad } from "three/tsl";
 
+//Variável para começar
+let start = false;
+const timeVar = {
+  maxSeconds: 90,
+  startTime: Date.now()
+};
 
-
-const basket = new URL("../assets/basket.glb", import.meta.url); //Caminho do modelo
+//Modelo da cesta
+const basket = new URL("../assets/basket.glb", import.meta.url);
 
 //Carregador de texturas e assets
 const textureLoader = new THREE.TextureLoader();
 const assetLoader = new GLTFLoader();
 
-const renderer = new THREE.WebGLRenderer(); //Cria o render
-renderer.shadowMap.enabled = true; //Ativa as sombras
-
+//RENDERER
+const renderer = new THREE.WebGLRenderer();
+renderer.shadowMap.enabled = true;
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
+//CENA E CAMERA
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
   90, //fov
@@ -34,7 +41,7 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.set(0, 9, 13); //Muda a posição do objeto
 camera.lookAt(0, 0, 0); //Muda o lugar que a câmera olha
 
-
+//FOGOS DE ARTIFÍCIO
 const particleCount = 3000;
 const particleGeometry = new THREE.BufferGeometry();
 const positions = new Float32Array(particleCount * 3);
@@ -70,7 +77,6 @@ const particleMaterial = new THREE.PointsMaterial({
   transparent: true,
   opacity: 0.9,
 });
-
 
 const particleSystem = new THREE.Points(particleGeometry, particleMaterial);
 particleSystem.position.set(20, 0, 0); // No centro do cenário
@@ -113,20 +119,25 @@ function animateParticles() {
   particleSystem.geometry.attributes.position.needsUpdate = true;
   particleSystem.geometry.attributes.color.needsUpdate = true;
 }
-// Descomente essas linhas para poder mexer a camera
-const orbit = new OrbitControls(camera, renderer.domElement); //Cria o controle da camera
-orbit.update(); //Atualizar sempre que muda a posição da camera
 
-const axesHelper = new THREE.AxesHelper(5); //Mostra os eixos
-scene.add(axesHelper);
+//CONTROLES DA CAMERA (DESATIVE DEPOIS DE USAR)
+//const orbit = new OrbitControls(camera, renderer.domElement);
+//orbit.update();
 
+//EIXOS AUXILIARES (DESATIVE DEPOIS DE USAR)
+//const axesHelper = new THREE.AxesHelper(5); //Mostra os eixos
+//scene.add(axesHelper);
+
+//CRIAÇÃO DO MUNDO FÍSICO
 const world = new CANNON.World();
 world.gravity.set(0, -2, 0); // Configuração da gravidade
 
+//ILUMINAÇÃO DA CENA
 const light = new THREE.DirectionalLight(0xffffff, 1);
 light.position.set(10, 10, 10);
 scene.add(light);
 
+//SKYBOX ANTIGA
 /*const cubeTextureLoader=new THREE.CubeTextureLoader();
 scene.background = cubeTextureLoader.load([
   '../textures/cubemap/px.png',
@@ -137,8 +148,8 @@ scene.background = cubeTextureLoader.load([
   '../textures/cubemap/nz.png',
 ]);*/
 
-const size = 100; // Adjust this value to change the skybox size
-
+//SKYBOX ATUAL
+const size = 100;
 const geometry = new THREE.BoxGeometry(size, size, size);
 const materialArray = [
   new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('../textures/cubemap/px.png'), side: THREE.BackSide }),
@@ -177,6 +188,7 @@ world.addBody(planeBody);
 plane.position.copy(planeBody.position);
 plane.quaternion.copy(planeBody.quaternion);
 
+//CONSTRUÇÃO DA FÍSICA DA CESTA
 let basketModel;
 assetLoader.load(basket.href, function (gltf) {
   //Carregar o modelo do blender
@@ -220,7 +232,6 @@ scene.add(topWall);
 scene.add(bottomWall);
 scene.add(basketBottom);
 
-
 const leftWallBody = new CANNON.Body({
     type: CANNON.Body.STATIC, // Torna a parede estática
     position: leftWall.position
@@ -256,7 +267,7 @@ const basketBottomBody = new CANNON.Body({
 basketBottomBody.addShape(new CANNON.Box(new CANNON.Vec3(1.1, 0.1, 0.9)));
 world.addBody(basketBottomBody);
 
-//Adiciona barreiras na área que a bola cai
+//CONSTRUÇÃO DAS BARREIRAS
 const xPositiveConstraintWallBody = new CANNON.Body({
   type: CANNON.Body.STATIC,
   position: new CANNON.Vec3(15, 15, 0),
@@ -291,7 +302,6 @@ camera.add(listener);
 const sound = new THREE.Audio(listener);
 const audioLoader = new THREE.AudioLoader();
 
-
 audioLoader.load('./music/background-music.mp3', function(buffer) {
   console.log("Áudio carregado com sucesso!");
   sound.setBuffer(buffer);
@@ -307,6 +317,7 @@ audioLoader.load('./music/background-music.mp3', function(buffer) {
 }, function(error) {
   console.error("Erro ao carregar o áudio:", error);
 });
+
 //Pontuação
 let score = 0;
 
@@ -338,17 +349,20 @@ function createBall(xPosition, model) {
 
   ballBody.addEventListener("collide", (event) => {
     if(event.body===planeBody && ballBody.flagRemove===false){
-      if(model == 1) score -= 10;
-      if(model == 2) score -= 5;
+      if(model == 1) score -= 3;
+      if(model == 2) score -= 2;
       if(model == 3) score -= 1;
       ballsToRemove.push(ball);
       ballBody.flagRemove=true;
+      createBall(Math.random() * 20 - 10, Math.floor(Math.random() * 3) + 1);
       console.log("Floor");
     }
     if(event.body===basketBottomBody && ballBody.flagRemove===false){
       if(model == 1) score += 10;
       if(model == 2) score += 5;
       if(model == 3) score += 1;
+      createBall(Math.random() * 20 - 10, Math.floor(Math.random() * 3) + 1);
+      createBall(Math.random() * 20 - 10, Math.floor(Math.random() * 3) + 1);
       ballsToRemove.push(ball);
       ballBody.flagRemove=true;
       console.log("Bottom")
@@ -412,10 +426,11 @@ simulFolder.add(world.gravity, 'y', -20,-0.1).step(0.1).name('Gravidade');
 simulFolder.open();
 
 //DEBUGGER MOSTRA O WIREFRAME DE TODOS OS CORPOS FÍSICOS
-const cannonDebugger = new CannonDebugger(scene, world, { 
+/*const cannonDebugger = new CannonDebugger(scene, world, { 
   color: 0xff0000,
 });
-cannonDebugger.update();
+cannonDebugger.update();*/
+
 //Pega e normaliza a posição do mouse
 const mousePosition = new THREE.Vector2();
 window.addEventListener("mousemove", function (e) {
@@ -423,8 +438,10 @@ window.addEventListener("mousemove", function (e) {
   mousePosition.y = -(e.clientY / window.innerHeight) * 2 + 1;
 });
 
+//Clicar começa o jogo
 window.addEventListener("click", (event) => {
-  createBall(Math.random() * 20 - 10, Math.floor(Math.random() * 3) + 1);
+  start = true;
+  timeVar.startTime = Date.now();
 });
 
 world.addEventListener('postStep', function () {
@@ -437,9 +454,6 @@ world.addEventListener('postStep', function () {
 const rayCaster = new THREE.Raycaster();
 const movPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // Plano horizontal (Y=0)
 const intersection = new THREE.Vector3();
-
-let delay=0;
-let cont=0;
 
 //TIMER
 const uiScene = new THREE.Scene();
@@ -478,12 +492,12 @@ timeSprites.forEach((sprite, i) => {
 timeSprites[2].scale.set(18,39,1);
 
 // Função para atualizar o timer
-let startTime = Date.now();
-let maxSeconds = 90;
+simulFolder.add(timeVar, 'maxSeconds', 30, 180).step(10).name('Tempo máx (s)');
+
 function updateTimer() {
-    let elapsedSeconds = Math.floor((Date.now() - startTime) / 1000) % 60;
-    let minutesRemaining = Math.floor((maxSeconds - elapsedSeconds) / 60);
-    let secondsRemaining = (maxSeconds - elapsedSeconds) % 60;
+    let elapsedSeconds = Math.floor((Date.now() - timeVar.startTime) / 1000) % 60;
+    let minutesRemaining = Math.floor((timeVar.maxSeconds - elapsedSeconds) / 60) % 60;
+    let secondsRemaining = (timeVar.maxSeconds - elapsedSeconds) % 60;
 
     let timeStr = `${String(minutesRemaining).padStart(2, '0')}${String(secondsRemaining).padStart(2, '0')}`;
 
@@ -494,10 +508,25 @@ function updateTimer() {
     timeSprites[4].material.map = numberTextures[timeStr[3]];
 
     // Ensure the textures are updated
-    timeSprites.forEach(sprite => {
-        sprite.material.map.needsUpdate = true;
-    });
+    if(start) {
+      timeSprites.forEach(sprite => {
+          sprite.material.map.needsUpdate = true;
+      });
+    }
+
+    if(elapsedSeconds >= timeVar.maxSeconds){
+      window.alert("Fim de jogo! Sua pontuação foi: " + score);
+      score = 0;
+      start = false;
+    }
 }
+
+let currentSprite = null;
+const countdownTextures = [
+  textureLoader.load('tres.png'),
+  textureLoader.load('dois.png'),
+  textureLoader.load('um.png')
+];
 
 //SCORE
 const numberTexturesP = {};
@@ -623,7 +652,6 @@ function createFirework() {
   }
 }
 
-
 let lastFireworkScore = 0; // Variável para armazenar o último score que soltou fogos
 
 function updateScoreboard() {
@@ -643,8 +671,14 @@ function updateScoreboard() {
 
   scoreSprites.forEach(sprite => {
     sprite.material.map.needsUpdate = true;
+    sprite.material.map.needsUpdate = true;
   });
 
+  // Verifica se a pontuação ultrapassou um múltiplo de 100
+  if (Math.floor(score / 100) > Math.floor(lastFireworkScore / 100)) {
+    createFirework(); // Ativa o efeito de fogos de artifício
+    lastFireworkScore = score; // Atualiza o último score que soltou fogos
+  }
   // Verifica se a pontuação ultrapassou um múltiplo de 100
   if (Math.floor(score / 100) > Math.floor(lastFireworkScore / 100)) {
     createFirework(); // Ativa o efeito de fogos de artifício
@@ -657,14 +691,18 @@ function updateScoreboard() {
 particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
 
+
+
+particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+
 function animate(time) {
+
   animateParticles();
 
   spotLight.angle = options.angle;
   spotLight.penumbra = options.penumbra;
   spotLight.intensity = options.intensity * 600;
-
-  delay=60/options["Balls per Second"];
 
   rayCaster.setFromCamera(mousePosition, camera);
 
@@ -689,16 +727,6 @@ function animate(time) {
     bottomWallBody.position.copy(bottomWall.position);
   }
 
-  if(cont==delay){
-    createBall(Math.random() * 20 - 10, Math.floor(Math.random() * 3) + 1);
-    cont=0;
-    if(cont>=60/options["Balls per Second"]){
-      cont=0;
-    }
-  }else{
-    cont++;
-  }
-
   for (let i = 0; i < balls.length; i++) {
     if(world.bodies.includes(balls[i][1])){
       balls[i][0].position.copy(balls[i][1].position);
@@ -709,12 +737,16 @@ function animate(time) {
   world.step(1 / 60);
 
   //ATUALIZAÇÃO DO DEBUGGER
-  cannonDebugger.update();
+  //cannonDebugger.update();
 
   //ATUALIZAÇÃO DO SCOREBOARD
   updateScoreboard();
 
-  updateTimer();
+  if(start)
+  {
+   updateTimer();
+  }
+
   renderer.autoClear = false;
   renderer.clearDepth();
  
@@ -734,12 +766,13 @@ window.addEventListener('resize', () => {
 
   // Update sprite positions on resize
   timeSprites.forEach((sprite, i) => {
-      sprite.position.set(startX + i * spacing, window.innerHeight / 2 - 50, 0);
+    sprite.position.set((i-2)*timerSpacing, timerHeight, 0);
+    uiScene.add(sprite);
   });
 
   scoreHeight =  - window.innerHeight / 2 + 200;
   scoreSprites.forEach((sprite, i) => {
     sprite.position.set((i-2.5)*scoreSpacing, scoreHeight, 0);
-});
+  });
 
 });
