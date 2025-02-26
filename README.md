@@ -353,6 +353,52 @@ if (Math.floor(score / 100) > Math.floor(lastFireworkScore / 100)) {
 }
 ```
 
+### **Implementação do Áudio de Fundo**
+  - Um AudioListener é criado e adicionado à câmera. Isso garante que o som seja ouvido corretamente de acordo com a posição da câmera na cena.
+  
+```javascript
+const listener = new THREE.AudioListener();
+camera.add(listener);
+```
+
+### **Criação do Objeto de Áudio (Audio)**
+  - Um objeto Audio é criado para gerenciar a reprodução do áudio.
+  
+```javascript
+const sound = new THREE.Audio(listener);
+```
+
+### **Carregamento do Áudio**
+  -O áudio é carregado usando AudioLoader. O arquivo de áudio (background-music.mp3) é carregado de forma assíncrona.
+  
+```javascript
+const audioLoader = new THREE.AudioLoader();
+audioLoader.load('./music/background-music.mp3', function(buffer) {
+  console.log("Áudio carregado com sucesso!");
+  sound.setBuffer(buffer);
+  sound.setLoop(true);
+  sound.setVolume(0.5);
+}, function(error) {
+  console.error("Erro ao carregar o áudio:", error);
+});
+```
+
+
+### **Reprodução do Áudio**
+  - Para atender às políticas de autoplay dos navegadores, o áudio só é reproduzido após o primeiro clique do usuário
+  - Um listener de evento é adicionado à janela para detectar o primeiro clique e iniciar a reprodução.
+  
+```javascript
+window.addEventListener("click", () => {
+  if (!sound.isPlaying) {
+    sound.play();
+  }
+});
+```
+
+
+
+
 ### Câmera
 - **Tipo**: `THREE.PerspectiveCamera`
   - A câmera é configurada com um campo de visão (FOV) de 45 graus, proporção de aspecto (`aspect`) baseada na largura e altura da janela, e planos de corte (`near` e `far`) para definir o que é visível.
