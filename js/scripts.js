@@ -389,22 +389,24 @@ const timeSprites = [
 ];
 
 // Posicionar os sprites no topo da tela
-const startX = -50; // Adjusted start position
-const spacing = 25; // Adjusted spacing
+const timerHeight = (window.innerHeight / 2) - 50;
+const timerSpacing = 40; // Adjusted spacing
 timeSprites.forEach((sprite, i) => {
-    sprite.position.set(startX + i * spacing, window.innerHeight / 2 - 50, 0); // Adjusted Y position
-    sprite.scale.set(25, 25, 1); // Ensure sprites are scaled to be visible
+    sprite.position.set((i-2)*timerSpacing, timerHeight, 0); // Adjusted Y position
+    sprite.scale.set(45, 45, 1); // Ensure sprites are scaled to be visible
     uiScene.add(sprite);
 });
+timeSprites[2].scale.set(18,39,1);
 
 // Função para atualizar o timer
 let startTime = Date.now();
+let maxSeconds = 90;
 function updateTimer() {
-    let elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-    let minutes = Math.floor(elapsedSeconds / 60);
-    let seconds = elapsedSeconds % 60;
+    let elapsedSeconds = Math.floor((Date.now() - startTime) / 1000) % 60;
+    let minutesRemaining = Math.floor((maxSeconds - elapsedSeconds) / 60);
+    let secondsRemaining = (maxSeconds - elapsedSeconds) % 60;
 
-    let timeStr = `${String(minutes).padStart(2, '0')}${String(seconds).padStart(2, '0')}`;
+    let timeStr = `${String(minutesRemaining).padStart(2, '0')}${String(secondsRemaining).padStart(2, '0')}`;
 
     // Atualizar as texturas dos sprites
     timeSprites[0].material.map = numberTextures[timeStr[0]];
@@ -418,26 +420,29 @@ function updateTimer() {
     });
 }
 
+//SCORE
+const numberTexturesP = {};
+for (let i = 0; i <= 9; i++) {
+    numberTexturesP[i] = textureLoader.load(`../sprites/${i}p.png`);
+}
+
 const ptsTexture = textureLoader.load('../sprites/pts.png');
 
 const scoreSprites = [
-  createSprite(numberTextures[0]),
-  createSprite(numberTextures[0]),
-  createSprite(numberTextures[0]),
-  createSprite(numberTextures[0]),
+  createSprite(numberTexturesP[0]),
+  createSprite(numberTexturesP[0]),
+  createSprite(numberTexturesP[0]),
+  createSprite(numberTexturesP[0]),
   createSprite(ptsTexture)
 ];
 
-const scoreStartX = -50; // Adjusted start position
-const scoreSpacing = 25; // Adjusted spacing
+let scoreHeight = - window.innerHeight / 2 + 200;
+const scoreSpacing = 40;
 scoreSprites.forEach((sprite, i) => {
-    sprite.position.set(scoreStartX + i * scoreSpacing, - window.innerHeight / 2 + 200, 0); // Adjusted Y position
-    sprite.scale.set(25, 25, 1); // Ensure sprites are scaled to be visible
+    sprite.position.set((i-2.5)*scoreSpacing, scoreHeight, 0);
+    sprite.scale.set(40, 40, 1);
     uiScene.add(sprite);
 });
-scoreSprites[4].position.set(startX + 4 * spacing + 30, - window.innerHeight / 2 + 200, 0);
-scoreSprites[4].scale.set(50,25,1);
-
 
 function updateScoreboard()
 {
@@ -448,10 +453,10 @@ function updateScoreboard()
   let m1 = score % 10;
 
   // Atualizar as texturas dos sprites
-  scoreSprites[0].material.map = numberTextures[m4];
-  scoreSprites[1].material.map = numberTextures[m3];
-  scoreSprites[2].material.map = numberTextures[m2];
-  scoreSprites[3].material.map = numberTextures[m1];
+  scoreSprites[0].material.map = numberTexturesP[m4];
+  scoreSprites[1].material.map = numberTexturesP[m3];
+  scoreSprites[2].material.map = numberTexturesP[m2];
+  scoreSprites[3].material.map = numberTexturesP[m1];
 
   //Ensure the textures are updated
   scoreSprites.forEach(sprite => {
@@ -538,9 +543,9 @@ window.addEventListener('resize', () => {
       sprite.position.set(startX + i * spacing, window.innerHeight / 2 - 50, 0);
   });
 
+  scoreHeight =  - window.innerHeight / 2 + 200;
   scoreSprites.forEach((sprite, i) => {
-    sprite.position.set(scoreStartX + i * scoreSpacing, - window.innerHeight / 2 + 200, 0);
+    sprite.position.set((i-2.5)*scoreSpacing, scoreHeight, 0);
 });
-  scoreSprites[4].position.set(startX + 4 * spacing + 30, - window.innerHeight / 2 + 200, 0);
 
 });
