@@ -252,6 +252,107 @@ function updateTimer() {
 }
 ```
 
+
+## Fogos de Artifício e Atualização do Placar
+
+Esta parte do código implementa um efeito de fogos de artifício que é ativado sempre que o jogador alcança uma pontuação múltipla de 100. Além disso, o placar é atualizado dinamicamente para refletir a pontuação atual.O efeito de fogos de artifício é criado usando partículas que se movem e mudam de cor ao longo do tempo. Cada partícula tem uma posição, velocidade e cor aleatórias, gerando um efeito visual impressionante.
+
+##Definição do ponto de exlposão 
+O ponto de explosão é definido aleatoriamente dentro de uma área específica da cena
+
+```javascript
+const explosionPoint = new THREE.Vector3(
+  (Math.random() - 0.5) * 30, // Posição X
+  explosionHeight, // Altura da explosão
+  (Math.random() - 0.5) * 30 // Posição Z
+);
+```
+
+### **Criação das particulas**
+  - Cada partícula é inicializada no ponto de explosão.
+  - A velocidade e a direção de cada partícula são definidas aleatoriamente.
+  - As cores das partículas também são geradas aleatoriamente.
+
+```javascript
+for (let i = 0; i < particleCount; i++) {
+  positions[i * 3] = explosionPoint.x; // Posição X
+  positions[i * 3 + 1] = explosionPoint.y; // Posição Y
+  positions[i * 3 + 2] = explosionPoint.z; // Posição Z
+
+  const angle = Math.random() * Math.PI * 2; // Direção aleatória
+  const speed = Math.random() * 2 + 1; // Velocidade aleatória
+  velocities[i * 3] = Math.cos(angle) * speed; // Velocidade X
+  velocities[i * 3 + 1] = Math.random() * 2 + 1; // Velocidade Y (para cima)
+  velocities[i * 3 + 2] = Math.sin(angle) * speed; // Velocidade Z
+
+  colors[i * 3] = Math.random(); // Cor R
+  colors[i * 3 + 1] = Math.random(); // Cor G
+  colors[i * 3 + 2] = Math.random(); // Cor B
+}
+```
+### **Atualização das particulas**
+  - As partículas se movem com base em sua velocidade.
+  - A velocidade no eixo Y é reduzida ao longo do tempo para simular a gravidade.
+  - As cores das partículas são gradualmente atenuadas para criar um efeito de desaparecimento.
+
+
+```javascript
+for (let i = 0; i < particleCount; i++) {
+  positions[i * 3] += velocities[i * 3] * 0.1; // Atualiza posição X
+  positions[i * 3 + 1] += velocities[i * 3 + 1] * 0.1; // Atualiza posição Y
+  positions[i * 3 + 2] += velocities[i * 3 + 2] * 0.1; // Atualiza posição Z
+
+  velocities[i * 3 + 1] -= 0.02; // Aplica gravidade
+
+  colors[i * 3] *= 0.98; // Atenua cor R
+  colors[i * 3 + 1] *= 0.98; // Atenua cor G
+  colors[i * 3 + 2] *= 0.98; // Atenua cor B
+}
+```
+
+### **Renderização e remorção**
+  - O efeito dura 240 frames (aproximadamente 4 segundos).
+  - Após esse tempo, as partículas são removidas da cena e os recursos são liberados.
+
+```javascript
+if (frames-- <= 0) {
+  scene.remove(firework);
+  geometry.dispose();
+  material.dispose();
+  return;
+}
+```
+
+###Atualização do Placar
+O placar é atualizado dinamicamente para refletir a pontuação atual. Quando o jogador alcança uma pontuação múltipla de 100, o efeito de fogos de artifício é ativado.
+
+### **Atualização dos Dígitos do Placar**
+  - A pontuação é dividida em dígitos individuais (milhares, centenas, dezenas e unidades).
+  - Cada dígito é mapeado para uma textura correspondente.
+
+```javascript
+let m4 = Math.floor(score / 1000) % 10; // Dígito dos milhares
+let m3 = Math.floor(score / 100) % 10; // Dígito das centenas
+let m2 = Math.floor(score / 10) % 10; // Dígito das dezenas
+let m1 = score % 10; // Dígito das unidades
+
+scoreSprites[0].material.map = numberTexturesP[m4]; // Atualiza milhares
+scoreSprites[1].material.map = numberTexturesP[m3]; // Atualiza centenas
+scoreSprites[2].material.map = numberTexturesP[m2]; // Atualiza dezenas
+scoreSprites[3].material.map = numberTexturesP[m1]; // Atualiza unidades
+}
+```
+
+### **Ativação dos Fogos de Artifício**
+  -Quando a pontuação ultrapassa um múltiplo de 100, o efeito de fogos de artifício é ativado.
+
+```javascript
+if (Math.floor(score / 100) > Math.floor(lastFireworkScore / 100)) {
+  createFirework(); // Ativa o efeito de fogos de artifício
+  lastFireworkScore = score; // Atualiza o último score que soltou fogos
+}
+```
+
 ### Câmera
 - **Tipo**: `THREE.PerspectiveCamera`
   - A câmera é configurada com um campo de visão (FOV) de 45 graus, proporção de aspecto (`aspect`) baseada na largura e altura da janela, e planos de corte (`near` e `far`) para definir o que é visível.
