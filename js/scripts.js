@@ -17,6 +17,16 @@ const timeVar = {
   startTime: Date.now()
 };
 
+//VAR de opçoes
+const options = {
+  angle: 10,
+  penumbra: 0,
+  intensity: 50,
+  "Balls per Second": 1,
+  mute: false,
+  allowMiss: true
+};
+
 //Modelo da cesta
 const basket = new URL("../assets/basket.glb", import.meta.url);
 
@@ -130,7 +140,7 @@ function animateParticles() {
 
 //CRIAÇÃO DO MUNDO FÍSICO
 const world = new CANNON.World();
-world.gravity.set(0, -2, 0); // Configuração da gravidade
+world.gravity.set(0, -1, 0); // Configuração da gravidade
 
 //ILUMINAÇÃO DA CENA
 const light = new THREE.DirectionalLight(0xffffff, 1);
@@ -349,20 +359,22 @@ function createBall(xPosition, model) {
 
   ballBody.addEventListener("collide", (event) => {
     if(event.body===planeBody && ballBody.flagRemove===false){
-      if(model == 1) score -= 3;
-      if(model == 2) score -= 2;
-      if(model == 3) score -= 1;
+      if(options.allowMiss){
+          if(model == 1) score -= 3;
+          if(model == 2) score -= 2;
+          if(model == 3) score -= 1;
+      }
       ballsToRemove.push(ball);
       ballBody.flagRemove=true;
-      createBall(Math.random() * 20 - 10, Math.floor(Math.random() * 3) + 1);
+      //createBall(Math.random() * 20 - 10, Math.floor(Math.random() * 3) + 1);
       console.log("Floor");
     }
     if(event.body===basketBottomBody && ballBody.flagRemove===false){
       if(model == 1) score += 10;
       if(model == 2) score += 5;
       if(model == 3) score += 1;
-      createBall(Math.random() * 20 - 10, Math.floor(Math.random() * 3) + 1);
-      createBall(Math.random() * 20 - 10, Math.floor(Math.random() * 3) + 1);
+      //createBall(Math.random() * 20 - 10, Math.floor(Math.random() * 3) + 1);
+      //createBall(Math.random() * 20 - 10, Math.floor(Math.random() * 3) + 1);
       ballsToRemove.push(ball);
       ballBody.flagRemove=true;
       console.log("Bottom")
@@ -402,13 +414,6 @@ spotLight.castShadow = true;
 renderer.setClearColor(0xffffff); //Muda o background
 
 const gui = new dat.GUI(); //Cria uma GUI para interação com o usuário
-const options = {
-  angle: 10,
-  penumbra: 0,
-  intensity: 50,
-  "Balls per Second": 1,
-  mute: false
-};
 
 gui.add(options, "angle", 0, 1);
 gui.add(options, "penumbra", 0, 1);
@@ -421,6 +426,10 @@ gui.add(options, "mute").name("Mute").onChange(function(value) {
       sound.setVolume(0.5); // Desmuta o áudio (volta ao volume original)
   }
 });
+gui.add(options, "allowMiss").name("Permitir erros").onChange((value) => {
+  options.allowMiss = value;
+});
+
 const simulFolder = gui.addFolder('Simulação');
 simulFolder.add(world.gravity, 'y', -20,-0.1).step(0.1).name('Gravidade');
 simulFolder.open();
@@ -440,8 +449,11 @@ window.addEventListener("mousemove", function (e) {
 
 //Clicar começa o jogo
 window.addEventListener("click", (event) => {
-  start = true;
-  timeVar.startTime = Date.now();
+  if(!start)
+  {
+    start = true;
+    timeVar.startTime = Date.now();
+  }
 });
 
 world.addEventListener('postStep', function () {
@@ -696,9 +708,22 @@ particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3
 particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
 
+const clock = new THREE.Clock();
+let lastTime = 0;
+
 function animate(time) {
 
   animateParticles();
+
+  let elapsedTime = clock.getElapsedTime();
+    
+if(start){
+    let elapsedTime = clock.getElapsedTime();
+    if (elapsedTime - lastTime >= 1/options["Balls per Second"]) {
+        lastTime = elapsedTime;
+        createBall(Math.random() * 20 - 10, Math.floor(Math.random() * 3) + 1);
+    }
+}
 
   spotLight.angle = options.angle;
   spotLight.penumbra = options.penumbra;
