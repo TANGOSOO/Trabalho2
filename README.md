@@ -257,7 +257,7 @@ function updateTimer() {
 
 Esta parte do código implementa um efeito de fogos de artifício que é ativado sempre que o jogador alcança uma pontuação múltipla de 100. Além disso, o placar é atualizado dinamicamente para refletir a pontuação atual.O efeito de fogos de artifício é criado usando partículas que se movem e mudam de cor ao longo do tempo. Cada partícula tem uma posição, velocidade e cor aleatórias, gerando um efeito visual impressionante.
 
-##Definição do ponto de exlposão 
+## Definição do ponto de exlposão 
 O ponto de explosão é definido aleatoriamente dentro de uma área específica da cena
 
 ```javascript
